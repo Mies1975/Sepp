@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEPP Beheer — Verborgen beheerpagina</title>
+  <style>
+    /* =============================================
+       SEPP Beheer — Stylesheet
+    ============================================= */
+    :root {
+      --green:      #2ECC71;
+      --green-dark: #1a9e53;
+      --orange:     #FF6B35;
+      --dark:       #0d1a0e;
+      --dark-2:     #162518;
+      --white:      #ffffff;
+      --off:        #f0f5f0;
+      --border:     #d0ddd0;
+      --text:       #1a2a1a;
+      --text-light: #5a6e5a;
+      --radius:     12px;
+      --shadow:     0 2px 20px rgba(0,0,0,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--off); color: var(--text); min-height: 100vh; }
+
+    /* ---- Login scherm ---- */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--dark);
+    }
+
+    .login-box {
+      background: var(--dark-2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem;
+      margin-bottom: 32px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .login-box label {
+      display: block;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 6px;
+    }
+
+    .login-box input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .login-box input:focus { border-color: var(--green); }
+
+    #login-error {
+      color: #ff6b6b;
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+
+    .btn-login {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-login:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+    /* ---- Beheer dashboard ---- */
+    #beheer-screen { display: none; }
+
+    .beheer-header {
+      background: var(--dark);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .beheer-logo {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -0.04em;
+    }
+    .beheer-header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .beheer-header-right a {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .beheer-header-right a:hover { color: var(--green); }
+
+    .btn-uitloggen {
+      background: rgba(255,107,53,0.15);
+      color: var(--orange);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-uitloggen:hover { background: rgba(255,107,53,0.25); }
+
+    .beheer-main {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+
+    .beheer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .card-beheer {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-beheer.full-width { grid-column: 1 / -1; }
+
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-header-icon { font-size: 1.4rem; }
+    .card-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-body { padding: 24px; }
+
+    /* Formulier velden */
+    .veld-groep {
+      margin-bottom: 18px;
+    }
+    .veld-groep label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .veld-groep input,
+    .veld-groep textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.975rem;
+      font-family: inherit;
+      color: var(--text);
+      padding: 10px 14px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .veld-groep input:focus,
+    .veld-groep textarea:focus { border-color: var(--green); }
+    .veld-groep textarea { resize: vertical; min-height: 80px; }
+
+    .veld-groep .hint {
+      font-size: 0.77rem;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+
+    /* Opslaan knop */
+    .btn-opslaan {
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 11px 24px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-opslaan:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+    .opgeslagen-melding {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(46,204,113,0.1);
+      color: var(--green-dark);
+      border: 1px solid rgba(46,204,113,0.25);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .opgeslagen-melding.toon { opacity: 1; }
+
+    /* ---- Kalender beheer ---- */
+    .kalender-maand-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .kalender-maand-nav button {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .kalender-maand-nav button:hover { background: var(--green); color: white; border-color: var(--green); }
+    .kalender-maand-label { font-weight: 700; font-size: 1rem; color: var(--text); }
+
+    .kalender-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .kalender-dag-header {
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+      padding: 6px 0;
+      letter-spacing: 0.08em;
+    }
+    .kalender-dag {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      position: relative;
+      user-select: none;
+    }
+    .kalender-dag:hover { transform: scale(1.05); }
+    .kalender-dag.leeg { background: transparent; border-color: transparent; cursor: default; }
+    .kalender-dag.available  { background: #d4f5e4; border-color: rgba(46,204,113,0.4); }
+    .kalender-dag.busy       { background: #ffe5d9; border-color: rgba(255,107,53,0.4); }
+    .kalender-dag.on-request { background: #e8ebe8; border-color: #c5cac5; }
+    .kalender-dag.vandaag    { outline: 2px solid var(--orange); outline-offset: 1px; }
+    .kalender-dag.verleden   { opacity: 0.4; cursor: default; }
+
+    .dag-num { font-size: 0.9rem; }
+
+    /* Legenda beheer */
+    .legenda {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .legenda-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1.5px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .legenda-item.actief-keuze { border-color: var(--text); background: rgba(0,0,0,0.04); }
+    .legenda-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+    }
+    .legenda-dot.available  { background: var(--green); }
+    .legenda-dot.busy       { background: var(--orange); }
+    .legenda-dot.on-request { background: #b0b8b0; }
+
+    .keuze-toelichting {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      background: var(--off);
+      border-radius: 8px;
+    }
+
+    /* Google Calendar sectie */
+    .gc-sectie {
+      background: var(--off);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .gc-sectie h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gc-sectie p { font-size: 0.85rem; color: var(--text-light); margin-bottom: 14px; line-height: 1.6; }
+    .gc-sectie ol { padding-left: 18px; }
+    .gc-sectie li { font-size: 0.84rem; color: var(--text-light); line-height: 1.8; }
+
+    /* Wachtwoord wijzigen */
+    .wachtwoord-info {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #fff8e7;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: rgba(46,204,113,0.08);
+      border: 1px solid rgba(46,204,113,0.2);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--green-dark);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .beheer-grid { grid-template-columns: 1fr; }
+      .card-beheer.full-width { grid-column: auto; }
+      .beheer-main { padding: 0 16px; margin: 24px auto; }
+      .beheer-header { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============================================
+     LOGIN SCHERM
+============================================= -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">SEPP</div>
+    <div class="login-subtitle">Beheerpaneel</div>
+    <div>
+      <label for="login-wachtwoord">Wachtwoord</label>
+      <!-- ====================================================
+           WACHTWOORD: Het wachtwoord wordt vergeleken met de
+           waarde in localStorage (sleutel: "seppBeheerWW").
+           Standaard wachtwoord: sepp2025
+           Wijzig dit via het paneel zelf na inloggen.
+      ==================================================== -->
+      <input type="password" id="login-wachtwoord" placeholder="Voer wachtwoord in"
+             autocomplete="current-password" />
+    </div>
+    <div id="login-error"></div>
+    <button class="btn-login" onclick="probeerInloggen()">Inloggen</button>
+  </div>
+</div>
+
+<!-- =============================================
+     BEHEER DASHBOARD
+============================================= -->
+<div id="beheer-screen">
+
+  <header class="beheer-header">
+    <div class="beheer-logo">SEPP Beheer</div>
+    <div class="beheer-header-right">
+      <a href="index.html" target="_blank">← Bekijk website</a>
+      <button class="btn-uitloggen" onclick="uitloggen()">Uitloggen</button>
+    </div>
+  </header>
+
+  <main class="beheer-main">
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span>✓</span>
+      <span>Ingelogd als beheerder. Wijzigingen worden direct op de website zichtbaar.</span>
+    </div>
+
+    <div class="beheer-grid">
+
+      <!-- ==========================================
+           CONTACTGEGEVENS
+      ========================================== -->
+      <div class="card-beheer">
+        <div class="card-header">
+          <div class="card-header-icon">📞</div>
+          <h2>Contactgegevens</h2>
+        </div>
+        <div class="card-body">
+          <div class="veld-groep">
+            <label>Telefoonnummer (weergave)</label>
+            <input type="text" id="b-telefoon" placeholder="06 12 34 56 78" />
+            <div class="hint">Zoals het op de site getoond wordt</div>
+          </div>
+          <div class="veld-groep">
+            <label>Telefoonnummer (WhatsApp)</label>
+            <input type="text" id="b-telefoon-raw" placeholder="31612345678" />
+            <div class="hint">Landcode + nummer, geen + of spaties (bv. 31612345678)</div>
+          </div>
+          <div class="veld-groep">
+            <label>E-mailadres</label>
+            <input type="email" id="b-email" placeholder="info@seppfeijten.nl" />
+          </div>
+          <button class="btn-opslaan" onclick="slaOpContactgegevens()">Opslaan</button>
+          <span class="opgeslagen-melding" id="melding-contact">✓ Opgeslagen!</span>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           TARIEF & BEDRIJFSINFO
+      ========================================== -->
+      <div class="card-beheer">
+        <div class="card-header">
+          <div class="card-header-icon">💼</div>
+          <h2>Tarief &amp; Bedrijfsinfo</h2>
+        </div>
+        <div class="card-body">
+          <div class="veld-groep">
+            <label>Uurtarief (€)</label>
+            <input type="number" id="b-tarief" placeholder="20" min="1" max="999" />
+            <div class="hint">Verschijnt in hero en tariefblok</div>
+          </div>
+          <div class="veld-groep">
+            <label>KvK-nummer</label>
+            <input type="text" id="b-kvk" placeholder="12345678" />
+          </div>
+          <div class="veld-groep">
+            <label>BTW-nummer</label>
+            <input type="text" id="b-btw" placeholder="NL123456789B01" />
+          </div>
+          <button class="btn-opslaan" onclick="slaOpTarief()">Opslaan</button>
+          <span class="opgeslagen-melding" id="melding-tarief">✓ Opgeslagen!</span>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           BESCHIKBAARHEID KALENDER (maandview)
+      ========================================== -->
+      <div class="card-beheer full-width">
+        <div class="card-header">
+          <div class="card-header-icon">📅</div>
+          <h2>Beschikbaarheid instellen</h2>
+        </div>
+        <div class="card-body">
+
+          <div class="legenda">
+            <div class="legenda-item actief-keuze" id="keuze-available" onclick="setStatusKeuze('available')">
+              <div class="legenda-dot available"></div> Beschikbaar
+            </div>
+            <div class="legenda-item" id="keuze-busy" onclick="setStatusKeuze('busy')">
+              <div class="legenda-dot busy"></div> Bezet
+            </div>
+            <div class="legenda-item" id="keuze-on-request" onclick="setStatusKeuze('on-request')">
+              <div class="legenda-dot on-request"></div> Op aanvraag
+            </div>
+          </div>
+
+          <div class="keuze-toelichting" id="keuze-toelichting">
+            Klik op een dag om die <strong>beschikbaar</strong> te zetten.
+          </div>
+
+          <!-- Maand navigatie -->
+          <div class="kalender-maand-nav">
+            <button onclick="vorigeMaand()" aria-label="Vorige maand">&#8592;</button>
+            <span class="kalender-maand-label" id="maand-label"></span>
+            <button onclick="volgendeMaand()" aria-label="Volgende maand">&#8594;</button>
+          </div>
+
+          <!-- Kalender grid -->
+          <div class="kalender-grid" id="kalender-grid"></div>
+
+          <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <button class="btn-opslaan" onclick="slaOpBeschikbaarheid()">
+              Beschikbaarheid opslaan
+            </button>
+            <button class="btn-opslaan" onclick="resetMaand()"
+              style="background: #e8ebe8; color: var(--text); border: 1px solid var(--border);">
+              Reset huidige maand
+            </button>
+            <span class="opgeslagen-melding" id="melding-kalender">✓ Opgeslagen!</span>
+          </div>
+
+          <!-- Google Calendar koppeling -->
+          <div class="gc-sectie">
+            <h3>🔗 Google Calendar koppeling</h3>
+            <p>
+              Als je Google Calendar activeert in <code>script.js</code>, wordt de agenda
+              automatisch bijgewerkt op basis van je Google Agenda-afspraken.
+              De handmatige instellingen hierboven dienen als <em>fallback</em>.
+            </p>
+            <div class="veld-groep" style="margin-bottom: 12px;">
+              <label>Google Calendar API Key</label>
+              <input type="text" id="b-gc-key" placeholder="AIzaSy..." />
+            </div>
+            <div class="veld-groep" style="margin-bottom: 12px;">
+              <label>Google Calendar ID</label>
+              <input type="text" id="b-gc-id" placeholder="naam@gmail.com" />
+            </div>
+            <button class="btn-opslaan" onclick="slaOpGoogleCalendar()" style="margin-bottom: 14px;">
+              Google Calendar activeren
+            </button>
+            <span class="opgeslagen-melding" id="melding-gc">✓ Opgeslagen!</span>
+
+            <ol>
+              <li>Ga naar <a href="https://console.cloud.google.com" target="_blank" rel="noopener">console.cloud.google.com</a></li>
+              <li>Maak een project aan → Activeer "Google Calendar API"</li>
+              <li>Maak een API Key aan (beperk tot jouw domein)</li>
+              <li>Stel je Google Agenda in als <strong>Publiek leesbaar</strong></li>
+              <li>Vul de API Key en Calendar ID hierboven in en klik opslaan</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           WACHTWOORD WIJZIGEN
+      ========================================== -->
+      <div class="card-beheer">
+        <div class="card-header">
+          <div class="card-header-icon">🔒</div>
+          <h2>Wachtwoord wijzigen</h2>
+        </div>
+        <div class="card-body">
+          <!-- ====================================================
+               WACHTWOORD: Standaard wachtwoord is "sepp2025".
+               Sla het nieuwe wachtwoord veilig op!
+          ==================================================== -->
+          <div class="veld-groep">
+            <label>Huidig wachtwoord</label>
+            <input type="password" id="b-oud-ww" placeholder="••••••••" />
+          </div>
+          <div class="veld-groep">
+            <label>Nieuw wachtwoord</label>
+            <input type="password" id="b-nieuw-ww" placeholder="••••••••" />
+          </div>
+          <div class="veld-groep">
+            <label>Nieuw wachtwoord (herhaal)</label>
+            <input type="password" id="b-nieuw-ww2" placeholder="••••••••" />
+          </div>
+          <button class="btn-opslaan" onclick="wijzigWachtwoord()">Wachtwoord wijzigen</button>
+          <span class="opgeslagen-melding" id="melding-ww">✓ Gewijzigd!</span>
+          <div class="wachtwoord-info">
+            ⚠️ Wachtwoorden worden opgeslagen in localStorage van de browser.
+            Dit is geschikt voor eenvoudig beheer, maar niet voor gevoelige data.
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SNELLE ACTIES
+      ========================================== -->
+      <div class="card-beheer">
+        <div class="card-header">
+          <div class="card-header-icon">⚡</div>
+          <h2>Snelle acties</h2>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn-opslaan" onclick="alleData()" style="background: var(--off); color: var(--text); border: 1px solid var(--border);">
+              📤 Exporteer alle instellingen
+            </button>
+            <button class="btn-opslaan" onclick="importData()" style="background: var(--off); color: var(--text); border: 1px solid var(--border);">
+              📥 Importeer instellingen
+            </button>
+            <button class="btn-opslaan" onclick="resetAlles()" style="background: rgba(255,77,77,0.08); color: #cc0000; border: 1px solid rgba(255,77,77,0.2);">
+              🗑️ Reset alle instellingen
+            </button>
+            <a href="index.html" target="_blank"
+               style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; background: var(--green); color: white; border-radius: 8px; font-weight: 700; font-size: 0.95rem; text-decoration: none; text-align: center; justify-content: center; transition: background 0.2s;">
+              👁️ Bekijk website
+            </a>
+          </div>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="verwerkImport(event)" />
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* =============================================
+   BEHEER JAVASCRIPT
+============================================= */
+
+// ====================================================
+// STANDAARD WACHTWOORD: Verander dit na eerste login!
+// Wachtwoord wordt opgeslagen als hash in localStorage.
+// ====================================================
+const STANDAARD_WACHTWOORD = 'sepp2025';
+
+/* ---- Authenticatie ---- */
+function getWachtwoord() {
+  return localStorage.getItem('seppBeheerWW') || STANDAARD_WACHTWOORD;
+}
+
+function probeerInloggen() {
+  const input = document.getElementById('login-wachtwoord').value;
+  const fout  = document.getElementById('login-error');
+
+  if (input === getWachtwoord()) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('beheer-screen').style.display = 'block';
+    laadAlleWaarden();
+    renderBeheerKalender();
+    fout.textContent = '';
+  } else {
+    fout.textContent = '✗ Onjuist wachtwoord. Probeer opnieuw.';
+    document.getElementById('login-wachtwoord').value = '';
+  }
+}
+
+document.getElementById('login-wachtwoord').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') probeerInloggen();
+});
+
+function uitloggen() {
+  document.getElementById('beheer-screen').style.display  = 'none';
+  document.getElementById('login-screen').style.display   = 'flex';
+  document.getElementById('login-wachtwoord').value = '';
+}
+
+/* ---- Waarden laden ---- */
+function laadAlleWaarden() {
+  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
+
+  setVal('b-telefoon',     cfg.telefoon    || '');
+  setVal('b-telefoon-raw', cfg.telefoonRaw || '');
+  setVal('b-email',        cfg.email       || '');
+  setVal('b-tarief',       cfg.tarief      || '');
+  setVal('b-kvk',          cfg.kvk         || '');
+  setVal('b-btw',          cfg.btw         || '');
+
+  const gcCfg = JSON.parse(localStorage.getItem('seppGCConfig') || '{}');
+  setVal('b-gc-key', gcCfg.apiKey    || '');
+  setVal('b-gc-id',  gcCfg.calendarId || '');
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+/* ---- Opslaan: contactgegevens ---- */
+function slaOpContactgegevens() {
+  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
+  cfg.telefoon    = document.getElementById('b-telefoon').value.trim();
+  cfg.telefoonRaw = document.getElementById('b-telefoon-raw').value.trim();
+  cfg.email       = document.getElementById('b-email').value.trim();
+  localStorage.setItem('seppConfig', JSON.stringify(cfg));
+  toonMelding('melding-contact');
+}
+
+/* ---- Opslaan: tarief & bedrijfsinfo ---- */
+function slaOpTarief() {
+  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
+  cfg.tarief = document.getElementById('b-tarief').value.trim();
+  cfg.kvk    = document.getElementById('b-kvk').value.trim();
+  cfg.btw    = document.getElementById('b-btw').value.trim();
+  localStorage.setItem('seppConfig', JSON.stringify(cfg));
+  toonMelding('melding-tarief');
+}
+
+/* ---- Google Calendar ---- */
+function slaOpGoogleCalendar() {
+  const gcCfg = {
+    apiKey:     document.getElementById('b-gc-key').value.trim(),
+    calendarId: document.getElementById('b-gc-id').value.trim(),
+    actief:     true,
+  };
+  localStorage.setItem('seppGCConfig', JSON.stringify(gcCfg));
+  toonMelding('melding-gc');
+}
+
+/* ---- Beschikbaarheid kalender ---- */
+let beheerMaand     = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let statusKeuze     = 'available';
+let beheerData      = JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}');
+
+const toelichtingen = {
+  available:   'Klik op een dag om die <strong>beschikbaar</strong> te zetten.',
+  busy:        'Klik op een dag om die als <strong>bezet</strong> te markeren.',
+  'on-request':'Klik op een dag om die als <strong>op aanvraag</strong> in te stellen.',
+};
+
+function setStatusKeuze(status) {
+  statusKeuze = status;
+  ['available', 'busy', 'on-request'].forEach(s => {
+    document.getElementById(`keuze-${s}`).classList.toggle('actief-keuze', s === status);
+  });
+  document.getElementById('keuze-toelichting').innerHTML = toelichtingen[status];
+}
+
+function vorigeMaand() {
+  beheerMaand.setMonth(beheerMaand.getMonth() - 1);
+  renderBeheerKalender();
+}
+function volgendeMaand() {
+  beheerMaand.setMonth(beheerMaand.getMonth() + 1);
+  renderBeheerKalender();
+}
+
+function renderBeheerKalender() {
+  const grid      = document.getElementById('kalender-grid');
+  const label     = document.getElementById('maand-label');
+  const vandaag   = new Date(); vandaag.setHours(0,0,0,0);
+  const dagNamen  = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+
+  label.textContent = beheerMaand.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' });
+
+  grid.innerHTML = '';
+
+  // Kolomkoppen
+  dagNamen.forEach(d => {
+    const h = document.createElement('div');
+    h.className   = 'kalender-dag-header';
+    h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  const eersteDag  = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), 1);
+  const aantalDagen = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth() + 1, 0).getDate();
+  // Maandag = 0
+  let startOffset = eersteDag.getDay() - 1;
+  if (startOffset < 0) startOffset = 6;
+
+  // Lege cellen voor startoffset
+  for (let i = 0; i < startOffset; i++) {
+    const leeg = document.createElement('div');
+    leeg.className = 'kalender-dag leeg';
+    grid.appendChild(leeg);
+  }
+
+  for (let dag = 1; dag <= aantalDagen; dag++) {
+    const datum     = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), dag);
+    const key       = datumStr(datum);
+    const isVandaag = datum.getTime() === vandaag.getTime();
+    const isVerleden = datum < vandaag;
+    const status    = beheerData[key] || 'available';
+
+    const cel = document.createElement('div');
+    cel.className = `kalender-dag ${status}${isVandaag ? ' vandaag' : ''}${isVerleden ? ' verleden' : ''}`;
+    cel.innerHTML = `<div class="dag-num">${dag}</div>`;
+    cel.title     = `${dag} — ${statusLabel(status)} — klik om te wijzigen`;
+
+    if (!isVerleden) {
+      cel.addEventListener('click', () => {
+        beheerData[key] = statusKeuze;
+        renderBeheerKalender();
+      });
+    }
+    grid.appendChild(cel);
+  }
+}
+
+function statusLabel(s) {
+  return { available: 'Beschikbaar', busy: 'Bezet', 'on-request': 'Op aanvraag' }[s] || s;
+}
+
+function slaOpBeschikbaarheid() {
+  localStorage.setItem('seppBeschikbaarheid', JSON.stringify(beheerData));
+  toonMelding('melding-kalender');
+}
+
+function resetMaand() {
+  if (!confirm('Weet je zeker dat je de huidige maand wil resetten naar "beschikbaar"?')) return;
+  const aantalDagen = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth() + 1, 0).getDate();
+  for (let d = 1; d <= aantalDagen; d++) {
+    const datum = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), d);
+    delete beheerData[datumStr(datum)];
+  }
+  renderBeheerKalender();
+}
+
+/* ---- Wachtwoord wijzigen ---- */
+function wijzigWachtwoord() {
+  const oud    = document.getElementById('b-oud-ww').value;
+  const nieuw  = document.getElementById('b-nieuw-ww').value;
+  const nieuw2 = document.getElementById('b-nieuw-ww2').value;
+
+  if (oud !== getWachtwoord()) {
+    alert('Het huidige wachtwoord klopt niet.');
+    return;
+  }
+  if (nieuw.length < 6) {
+    alert('Kies een wachtwoord van minimaal 6 tekens.');
+    return;
+  }
+  if (nieuw !== nieuw2) {
+    alert('De nieuwe wachtwoorden komen niet overeen.');
+    return;
+  }
+
+  localStorage.setItem('seppBeheerWW', nieuw);
+  document.getElementById('b-oud-ww').value  = '';
+  document.getElementById('b-nieuw-ww').value  = '';
+  document.getElementById('b-nieuw-ww2').value = '';
+  toonMelding('melding-ww');
+}
+
+/* ---- Export / Import ---- */
+function alleData() {
+  const exportObj = {
+    seppConfig:          JSON.parse(localStorage.getItem('seppConfig') || '{}'),
+    seppBeschikbaarheid: JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}'),
+    seppGCConfig:        JSON.parse(localStorage.getItem('seppGCConfig') || '{}'),
+    exportDatum:         new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `sepp-instellingen-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  document.getElementById('import-file').click();
+}
+
+function verwerkImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.seppConfig)          localStorage.setItem('seppConfig',          JSON.stringify(data.seppConfig));
+      if (data.seppBeschikbaarheid) localStorage.setItem('seppBeschikbaarheid', JSON.stringify(data.seppBeschikbaarheid));
+      if (data.seppGCConfig)        localStorage.setItem('seppGCConfig',        JSON.stringify(data.seppGCConfig));
+      beheerData = JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}');
+      laadAlleWaarden();
+      renderBeheerKalender();
+      alert('✓ Instellingen geïmporteerd!');
+    } catch {
+      alert('Fout: ongeldig bestand.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetAlles() {
+  if (!confirm('Weet je zeker dat je ALLE instellingen wilt wissen? Dit kan niet ongedaan worden.')) return;
+  ['seppConfig','seppBeschikbaarheid','seppGCConfig','seppGCBusy','seppGCSyncTijd'].forEach(k => {
+    localStorage.removeItem(k);
+  });
+  beheerData = {};
+  laadAlleWaarden();
+  renderBeheerKalender();
+  alert('Alle instellingen zijn gewist.');
+}
+
+/* ---- Hulpfuncties ---- */
+function toonMelding(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('toon');
+  setTimeout(() => el.classList.remove('toon'), 3000);
+}
+
+function datumStr(datum) {
+  return datum.toISOString().split('T')[0];
+}
+</script>
+
+</body>
+</html>
