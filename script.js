@@ -126,13 +126,18 @@ function laadOpgeslagenInstellingen() {
 function laadTeksten() {
   const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
 
-  // Hero badge (behoudt de groene stip)
+  // Hulpfunctie: zet tekstinhoud als waarde aanwezig is
+  function zt(id, val) {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  // ---- Hero ----
   if (t.heroBadge) {
     const badge = document.getElementById('hero-badge');
     if (badge) badge.innerHTML = '<span class="dot"></span> ' + t.heroBadge;
   }
-
-  // Hero h1: twee regels
   if (t.heroTitel1 || t.heroTitel2) {
     const h1 = document.getElementById('hero-titel');
     if (h1) {
@@ -141,28 +146,87 @@ function laadTeksten() {
       h1.innerHTML = r1 + '<br /><span class="highlight">' + r2 + '</span>';
     }
   }
-
-  // Sectieteksten
-  const velden = [
-    ['snel-intro',      t.snelIntro],
-    ['snel-tekst',      t.snelTekst],
-    ['even-intro',      t.evenIntro],
-    ['even-tekst',      t.evenTekst],
-    ['perfect-intro',   t.perfectIntro],
-    ['personeel-intro', t.personeelIntro],
-  ];
-  velden.forEach(([id, val]) => {
-    if (val) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
+  // Hero sub: {tarief} wordt vervangen door het actuele tarief
+  if (t.heroSub) {
+    const sub = document.getElementById('hero-sub');
+    if (sub) {
+      const tarief = CONTACT_CONFIG.tarief || '20';
+      sub.innerHTML = t.heroSub.replace(/\{tarief\}/g,
+        '€<span class="dynamic-rate">' + tarief + '</span>');
     }
-  });
+  }
+  zt('hero-btn-primary',   t.heroBtnPrimary);
+  zt('hero-btn-secondary', t.heroBtnSecondary);
 
-  // Over Sepp blockquote (ondersteunt regeleinden via <br>)
+  // ---- Snel ----
+  zt('snel-intro',      t.snelIntro);
+  zt('snel-tekst',      t.snelTekst);
+  zt('snel-card1-titel', t.snelCard1Titel);
+  zt('snel-card1-li1',  t.snelCard1Li1);
+  zt('snel-card1-li2',  t.snelCard1Li2);
+  zt('snel-card1-li3',  t.snelCard1Li3);
+  zt('snel-card1-li4',  t.snelCard1Li4);
+  zt('snel-card2-titel', t.snelCard2Titel);
+  zt('snel-card2-li1',  t.snelCard2Li1);
+  zt('snel-card2-li2',  t.snelCard2Li2);
+  zt('snel-card2-li3',  t.snelCard2Li3);
+  zt('snel-card2-li4',  t.snelCard2Li4);
+
+  // ---- Even ----
+  zt('even-intro',       t.evenIntro);
+  zt('even-tekst',       t.evenTekst);
+  zt('even-tl1-titel',   t.evenTl1Titel);
+  zt('even-tl1-sub',     t.evenTl1Sub);
+  zt('even-tl2-titel',   t.evenTl2Titel);
+  zt('even-tl2-sub',     t.evenTl2Sub);
+  zt('even-tl3-titel',   t.evenTl3Titel);
+  zt('even-tl3-sub',     t.evenTl3Sub);
+  zt('even-tl4-titel',   t.evenTl4Titel);
+  zt('even-tl4-sub',     t.evenTl4Sub);
+  zt('even-tl5-titel',   t.evenTl5Titel);
+  zt('even-tl5-sub',     t.evenTl5Sub);
+  zt('even-stat1-num',   t.evenStat1Num);
+  zt('even-stat1-label', t.evenStat1Label);
+  zt('even-stat2-num',   t.evenStat2Num);
+  zt('even-stat2-label', t.evenStat2Label);
+  zt('even-stat3-num',   t.evenStat3Num);
+  zt('even-stat3-label', t.evenStat3Label);
+
+  // ---- Perfect / Over Sepp ----
+  zt('perfect-intro',     t.perfectIntro);
+  zt('profiel-leeftijd',  t.profielLeeftijd);
   if (t.overSeppTekst) {
     const bq = document.getElementById('over-sepp-quote');
     if (bq) bq.innerHTML = t.overSeppTekst.replace(/\n/g, '<br />');
   }
+  // Kwaliteiten: behoudt het ✓ icoontje
+  [1,2,3,4,5,6].forEach(i => {
+    const val = t['quality' + i];
+    if (val) {
+      const el = document.getElementById('quality-' + i);
+      if (el) el.innerHTML = '<span class="quality-icon">✓</span> ' + val;
+    }
+  });
+
+  // ---- Personeel ----
+  zt('personeel-intro',  t.personeelIntro);
+  zt('prijs-facturatie', t.prijsFacturatie);
+  zt('prijs-reiskosten', t.prijsReiskosten);
+  zt('prijs-minimum',    t.prijsMinimum);
+
+  // ---- Beschikbaarheid ----
+  zt('beschikbaar-intro', t.beschikbaarIntro);
+
+  // ---- Contact ----
+  zt('contact-intro',        t.contactIntro);
+  zt('contact-direct-titel', t.contactDirectTitel);
+  if (t.contactSnelTekst) {
+    const el = document.getElementById('contact-snel-tekst');
+    if (el) el.innerHTML = t.contactSnelTekst;
+  }
+
+  // ---- Footer ----
+  zt('footer-tagline', t.footerTagline);
 }
 
 /* =============================================

@@ -49,12 +49,12 @@
           Extra handen<br />
           <span class="highlight">wanneer u ze nodig heeft</span>
         </h1>
-        <p class="hero-sub fade-in-up" style="--delay: 0.2s">
+        <p class="hero-sub fade-in-up" id="hero-sub" style="--delay: 0.2s">
           Direct inzetbaar &nbsp;•&nbsp; €<span class="dynamic-rate">20</span> per uur &nbsp;•&nbsp; Rijbewijs B
         </p>
         <div class="hero-buttons fade-in-up" style="--delay: 0.3s">
-          <a href="#contact" class="btn btn-primary">Boek Sepp</a>
-          <a href="#beschikbaarheid" class="btn btn-secondary">Bekijk beschikbaarheid</a>
+          <a href="#contact" class="btn btn-primary" id="hero-btn-primary">Boek Sepp</a>
+          <a href="#beschikbaarheid" class="btn btn-secondary" id="hero-btn-secondary">Bekijk beschikbaarheid</a>
         </div>
       </div>
       <div class="hero-scroll-hint fade-in-up" style="--delay: 0.6s">
@@ -78,22 +78,22 @@
           <div class="cards-grid reveal reveal-delay">
             <div class="card card-green">
               <div class="card-icon">🚗</div>
-              <h3>Rijden &amp; Bezorgen</h3>
+              <h3 id="snel-card1-titel">Rijden &amp; Bezorgen</h3>
               <ul>
-                <li>Kerstpakketten bezorgen</li>
-                <li>Materialen transporteren</li>
-                <li>Chauffeur in bedrijfsauto</li>
-                <li>Spoedbezorgingen</li>
+                <li id="snel-card1-li1">Kerstpakketten bezorgen</li>
+                <li id="snel-card1-li2">Materialen transporteren</li>
+                <li id="snel-card1-li3">Chauffeur in bedrijfsauto</li>
+                <li id="snel-card1-li4">Spoedbezorgingen</li>
               </ul>
             </div>
             <div class="card card-orange">
               <div class="card-icon">🔧</div>
-              <h3>Op Locatie</h3>
+              <h3 id="snel-card2-titel">Op Locatie</h3>
               <ul>
-                <li>Vloeren leggen (assistent)</li>
-                <li>Events op/afbouwen</li>
-                <li>Magazijnwerk</li>
-                <li>Verhuishulp</li>
+                <li id="snel-card2-li1">Vloeren leggen (assistent)</li>
+                <li id="snel-card2-li2">Events op/afbouwen</li>
+                <li id="snel-card2-li3">Magazijnwerk</li>
+                <li id="snel-card2-li4">Verhuishulp</li>
               </ul>
             </div>
           </div>
@@ -112,36 +112,36 @@
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-content">
-                <strong>Vloerenteam assisteren</strong>
-                <span>Sjouwen, aanreiken, afwerken</span>
+                <strong id="even-tl1-titel">Vloerenteam assisteren</strong>
+                <span id="even-tl1-sub">Sjouwen, aanreiken, afwerken</span>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-content">
-                <strong>Kerstpakketten bezorgen</strong>
-                <span>Rijbewijs B, op tijd, efficiënt</span>
+                <strong id="even-tl2-titel">Kerstpakketten bezorgen</strong>
+                <span id="even-tl2-sub">Rijbewijs B, op tijd, efficiënt</span>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-content">
-                <strong>Events op- en afbouwen</strong>
-                <span>Tenten, meubilair, materialen</span>
+                <strong id="even-tl3-titel">Events op- en afbouwen</strong>
+                <span id="even-tl3-sub">Tenten, meubilair, materialen</span>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-content">
-                <strong>Magazijnwerk</strong>
-                <span>Orderpicken, inpakken, verplaatsen</span>
+                <strong id="even-tl4-titel">Magazijnwerk</strong>
+                <span id="even-tl4-sub">Orderpicken, inpakken, verplaatsen</span>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-content">
-                <strong>Verhuishulp</strong>
-                <span>Dozen sjouwen, laden en lossen</span>
+                <strong id="even-tl5-titel">Verhuishulp</strong>
+                <span id="even-tl5-sub">Dozen sjouwen, laden en lossen</span>
               </div>
             </div>
           </div>
@@ -151,16 +151,16 @@
             <p id="even-tekst">Klussen vanaf 3 uur. Sepp werkt het liefst op de achtergrond — gewoon aanpakken zonder veel klantcontact. Precies wat u nodig heeft voor die ene klus.</p>
             <div class="stat-row">
               <div class="stat">
-                <div class="stat-number">3+</div>
-                <div class="stat-label">uur minimum</div>
+                <div class="stat-number" id="even-stat1-num">3+</div>
+                <div class="stat-label" id="even-stat1-label">uur minimum</div>
               </div>
               <div class="stat">
-                <div class="stat-number">&lt;24u</div>
-                <div class="stat-label">inzetbaar</div>
+                <div class="stat-number" id="even-stat2-num">&lt;24u</div>
+                <div class="stat-label" id="even-stat2-label">inzetbaar</div>
               </div>
               <div class="stat">
-                <div class="stat-number">0</div>
-                <div class="stat-label">gedoe</div>
+                <div class="stat-number" id="even-stat3-num">0</div>
+                <div class="stat-label" id="even-stat3-label">gedoe</div>
               </div>
             </div>
           </div>
@@ -188,7 +188,7 @@
               ==================================================== -->
               <span>SF</span>
             </div>
-            <div class="profile-badge">20 jaar</div>
+            <div class="profile-badge" id="profiel-leeftijd">20 jaar</div>
           </div>
           <div class="profile-text">
             <blockquote id="over-sepp-quote">
@@ -196,12 +196,12 @@
               Geen praatjes, wél meters maken."
             </blockquote>
             <div class="qualities">
-              <div class="quality"><span class="quality-icon">✓</span> Betrouwbaar</div>
-              <div class="quality"><span class="quality-icon">✓</span> Punctueel</div>
-              <div class="quality"><span class="quality-icon">✓</span> Fysiek fit</div>
-              <div class="quality"><span class="quality-icon">✓</span> Leert snel</div>
-              <div class="quality"><span class="quality-icon">✓</span> Werkt zelfstandig</div>
-              <div class="quality"><span class="quality-icon">✓</span> Rijbewijs B</div>
+              <div class="quality" id="quality-1"><span class="quality-icon">✓</span> Betrouwbaar</div>
+              <div class="quality" id="quality-2"><span class="quality-icon">✓</span> Punctueel</div>
+              <div class="quality" id="quality-3"><span class="quality-icon">✓</span> Fysiek fit</div>
+              <div class="quality" id="quality-4"><span class="quality-icon">✓</span> Leert snel</div>
+              <div class="quality" id="quality-5"><span class="quality-icon">✓</span> Werkt zelfstandig</div>
+              <div class="quality" id="quality-6"><span class="quality-icon">✓</span> Rijbewijs B</div>
             </div>
           </div>
         </div>
@@ -232,17 +232,17 @@
           <div class="pricing-card">
             <div class="pricing-icon">📄</div>
             <div class="pricing-label">Facturatie</div>
-            <div class="pricing-desc">Per klus afgerekend. Factuur na afloop.</div>
+            <div class="pricing-desc" id="prijs-facturatie">Per klus afgerekend. Factuur na afloop.</div>
           </div>
           <div class="pricing-card">
             <div class="pricing-icon">🚘</div>
             <div class="pricing-label">Reiskosten</div>
-            <div class="pricing-desc">In overleg. Bedrijfsauto via opdrachtgever mogelijk.</div>
+            <div class="pricing-desc" id="prijs-reiskosten">In overleg. Bedrijfsauto via opdrachtgever mogelijk.</div>
           </div>
           <div class="pricing-card">
             <div class="pricing-icon">⏱️</div>
             <div class="pricing-label">Minimum</div>
-            <div class="pricing-desc">3 uur per klus. Daarna per heel uur.</div>
+            <div class="pricing-desc" id="prijs-minimum">3 uur per klus. Daarna per heel uur.</div>
           </div>
         </div>
       </div>
@@ -256,7 +256,7 @@
         <div class="section-label reveal">05</div>
         <div class="section-center reveal">
           <h2>Beschikbaarheid<span class="dot-accent">.</span></h2>
-          <p class="section-intro">Controleer wanneer Sepp vrij is.</p>
+          <p class="section-intro" id="beschikbaar-intro">Controleer wanneer Sepp vrij is.</p>
         </div>
 
         <!-- Legenda -->
@@ -301,7 +301,7 @@
         <div class="section-label reveal">06</div>
         <div class="section-center reveal">
           <h2>Boek Sepp<span class="dot-accent">.</span></h2>
-          <p class="section-intro">Vertel wat u nodig heeft. Sepp reageert snel.</p>
+          <p class="section-intro" id="contact-intro">Vertel wat u nodig heeft. Sepp reageert snel.</p>
         </div>
 
         <div class="contact-grid reveal reveal-delay">
@@ -345,7 +345,7 @@
           <!-- Contact sidebar -->
           <div class="contact-sidebar">
             <div class="contact-card">
-              <h3>Liever direct contact?</h3>
+              <h3 id="contact-direct-titel">Liever direct contact?</h3>
               <!-- ====================================================
                    WHATSAPP: Pas het nummer aan in script.js bij
                    CONTACT_CONFIG.whatsapp
@@ -373,7 +373,7 @@
             </div>
             <div class="contact-card highlight-card">
               <div class="highlight-icon">⚡</div>
-              <p><strong>Snel nodig?</strong> Bel of app direct. Sepp reageert zelfde dag.</p>
+              <p id="contact-snel-tekst"><strong>Snel nodig?</strong> Bel of app direct. Sepp reageert zelfde dag.</p>
             </div>
           </div>
         </div>
@@ -388,7 +388,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <div class="footer-logo">SEPP</div>
-      <div class="footer-tagline">Snel Even Perfect Personeel</div>
+      <div class="footer-tagline" id="footer-tagline">Snel Even Perfect Personeel</div>
       <div class="footer-links">
         <a href="#snel">Snel</a>
         <a href="#even">Even</a>

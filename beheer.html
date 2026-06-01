@@ -393,12 +393,32 @@
       font-weight: 600;
     }
 
+    /* Sectietitels binnen tekstenpaneel */
+    .tekst-sectie-titel {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-light);
+      background: var(--off);
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin: 20px 0 14px;
+    }
+    .tekst-sectie-titel:first-child { margin-top: 0; }
+
+    .teksten-kolommen {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 32px;
+    }
+
     @media (max-width: 640px) {
       .beheer-grid { grid-template-columns: 1fr; }
       .card-beheer.full-width { grid-column: auto; }
       .beheer-main { padding: 0 16px; margin: 24px auto; }
       .beheer-header { padding: 14px 16px; }
-      .teksten-kolommen { grid-template-columns: 1fr !important; }
+      .teksten-kolommen { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -460,61 +480,210 @@
         </div>
         <div class="card-body">
 
-          <div class="teksten-kolommen" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px;">
-
-            <!-- Linker kolom -->
+          <!-- HERO -->
+          <div class="tekst-sectie-titel">🏠 Hero</div>
+          <div class="teksten-kolommen">
             <div>
               <div class="veld-groep">
-                <label>Hero — badge tekst</label>
+                <label>Badge tekst</label>
                 <input type="text" id="t-hero-badge" placeholder="Beschikbaar voor nieuwe klussen" />
-                <div class="hint">Groene badge bovenaan de pagina</div>
+                <div class="hint">De groene badge bovenaan de pagina</div>
               </div>
               <div class="veld-groep">
-                <label>Hero — titel regel 1</label>
+                <label>Titel — regel 1</label>
                 <input type="text" id="t-hero-titel1" placeholder="Extra handen" />
               </div>
               <div class="veld-groep">
-                <label>Hero — titel regel 2 (groen)</label>
+                <label>Titel — regel 2 (groen gemarkeerd)</label>
                 <input type="text" id="t-hero-titel2" placeholder="wanneer u ze nodig heeft" />
               </div>
+            </div>
+            <div>
               <div class="veld-groep">
-                <label>Snel — intro zin</label>
+                <label>Subtitel</label>
+                <input type="text" id="t-hero-sub" placeholder="Direct inzetbaar • €{tarief} per uur • Rijbewijs B" />
+                <div class="hint">Gebruik <code>{tarief}</code> als plaatshouder voor het uurtarief</div>
+              </div>
+              <div class="veld-groep">
+                <label>Knop 1 (primair)</label>
+                <input type="text" id="t-hero-btn-primary" placeholder="Boek Sepp" />
+              </div>
+              <div class="veld-groep">
+                <label>Knop 2 (secundair)</label>
+                <input type="text" id="t-hero-btn-secondary" placeholder="Bekijk beschikbaarheid" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SNEL -->
+          <div class="tekst-sectie-titel">⚡ Snel</div>
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Intro zin</label>
                 <input type="text" id="t-snel-intro" placeholder="Geen weken wachten. Sepp staat binnen een dag klaar voor uw klus." />
               </div>
               <div class="veld-groep">
-                <label>Snel — bodytekst</label>
+                <label>Bodytekst</label>
                 <textarea id="t-snel-tekst" rows="3" placeholder="Van rijden en bezorgen tot meewerken op locatie..."></textarea>
               </div>
             </div>
-
-            <!-- Rechter kolom -->
             <div>
               <div class="veld-groep">
-                <label>Even — intro zin</label>
+                <label>Kaart 1 — titel</label>
+                <input type="text" id="t-snel-card1-titel" placeholder="Rijden &amp; Bezorgen" />
+              </div>
+              <div class="veld-groep">
+                <label>Kaart 1 — punten (4 regels)</label>
+                <input type="text" id="t-snel-card1-li1" placeholder="Kerstpakketten bezorgen" />
+                <input type="text" id="t-snel-card1-li2" placeholder="Materialen transporteren" style="margin-top:6px" />
+                <input type="text" id="t-snel-card1-li3" placeholder="Chauffeur in bedrijfsauto" style="margin-top:6px" />
+                <input type="text" id="t-snel-card1-li4" placeholder="Spoedbezorgingen" style="margin-top:6px" />
+              </div>
+              <div class="veld-groep">
+                <label>Kaart 2 — titel</label>
+                <input type="text" id="t-snel-card2-titel" placeholder="Op Locatie" />
+              </div>
+              <div class="veld-groep">
+                <label>Kaart 2 — punten (4 regels)</label>
+                <input type="text" id="t-snel-card2-li1" placeholder="Vloeren leggen (assistent)" />
+                <input type="text" id="t-snel-card2-li2" placeholder="Events op/afbouwen" style="margin-top:6px" />
+                <input type="text" id="t-snel-card2-li3" placeholder="Magazijnwerk" style="margin-top:6px" />
+                <input type="text" id="t-snel-card2-li4" placeholder="Verhuishulp" style="margin-top:6px" />
+              </div>
+            </div>
+          </div>
+
+          <!-- EVEN -->
+          <div class="tekst-sectie-titel">⏱ Even</div>
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Intro zin</label>
                 <input type="text" id="t-even-intro" placeholder="Tijdelijk, op afroep, geen verplichtingen." />
               </div>
               <div class="veld-groep">
-                <label>Even — bodytekst</label>
-                <textarea id="t-even-tekst" rows="3" placeholder="Klussen vanaf 3 uur. Sepp werkt het liefst op de achtergrond..."></textarea>
+                <label>Bodytekst</label>
+                <textarea id="t-even-tekst" rows="3" placeholder="Klussen vanaf 3 uur..."></textarea>
               </div>
               <div class="veld-groep">
-                <label>Perfect — intro zin</label>
+                <label>Stats (getal / label)</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <input type="text" id="t-even-stat1-num"   placeholder="3+" />
+                  <input type="text" id="t-even-stat1-label" placeholder="uur minimum" />
+                  <input type="text" id="t-even-stat2-num"   placeholder="&lt;24u" />
+                  <input type="text" id="t-even-stat2-label" placeholder="inzetbaar" />
+                  <input type="text" id="t-even-stat3-num"   placeholder="0" />
+                  <input type="text" id="t-even-stat3-label" placeholder="gedoe" />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="veld-groep">
+                <label>Tijdlijn — 5 items (titel / ondertitel)</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <input type="text" id="t-even-tl1-titel" placeholder="Vloerenteam assisteren" />
+                  <input type="text" id="t-even-tl1-sub"   placeholder="Sjouwen, aanreiken, afwerken" />
+                  <input type="text" id="t-even-tl2-titel" placeholder="Kerstpakketten bezorgen" />
+                  <input type="text" id="t-even-tl2-sub"   placeholder="Rijbewijs B, op tijd, efficiënt" />
+                  <input type="text" id="t-even-tl3-titel" placeholder="Events op- en afbouwen" />
+                  <input type="text" id="t-even-tl3-sub"   placeholder="Tenten, meubilair, materialen" />
+                  <input type="text" id="t-even-tl4-titel" placeholder="Magazijnwerk" />
+                  <input type="text" id="t-even-tl4-sub"   placeholder="Orderpicken, inpakken, verplaatsen" />
+                  <input type="text" id="t-even-tl5-titel" placeholder="Verhuishulp" />
+                  <input type="text" id="t-even-tl5-sub"   placeholder="Dozen sjouwen, laden en lossen" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PERFECT / OVER SEPP -->
+          <div class="tekst-sectie-titel">👤 Perfect / Over Sepp</div>
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Intro zin</label>
                 <input type="text" id="t-perfect-intro" placeholder="Geen praatjes, wél meters maken." />
               </div>
               <div class="veld-groep">
-                <label>Over Sepp — citaat</label>
+                <label>Leeftijdsbadge (op foto)</label>
+                <input type="text" id="t-profiel-leeftijd" placeholder="20 jaar" />
+              </div>
+              <div class="veld-groep">
+                <label>Citaat van Sepp</label>
                 <textarea id="t-over-sepp" rows="3" placeholder='"Ik ben Sepp: aanpakker, op tijd, leer snel.&#10;Geen praatjes, wél meters maken."'></textarea>
                 <div class="hint">Gebruik Enter voor een nieuwe regel</div>
               </div>
+            </div>
+            <div>
               <div class="veld-groep">
-                <label>Personeel — intro zin</label>
+                <label>Kwaliteiten (6 punten)</label>
+                <input type="text" id="t-quality-1" placeholder="Betrouwbaar" />
+                <input type="text" id="t-quality-2" placeholder="Punctueel"       style="margin-top:6px" />
+                <input type="text" id="t-quality-3" placeholder="Fysiek fit"      style="margin-top:6px" />
+                <input type="text" id="t-quality-4" placeholder="Leert snel"      style="margin-top:6px" />
+                <input type="text" id="t-quality-5" placeholder="Werkt zelfstandig" style="margin-top:6px" />
+                <input type="text" id="t-quality-6" placeholder="Rijbewijs B"     style="margin-top:6px" />
+              </div>
+            </div>
+          </div>
+
+          <!-- PERSONEEL -->
+          <div class="tekst-sectie-titel">💼 Personeel / Tarieven</div>
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Intro zin</label>
                 <input type="text" id="t-personeel-intro" placeholder="Helder en eerlijk. Geen verrassingen achteraf." />
               </div>
             </div>
-
+            <div>
+              <div class="veld-groep">
+                <label>Kaart — Facturatie</label>
+                <input type="text" id="t-prijs-facturatie" placeholder="Per klus afgerekend. Factuur na afloop." />
+              </div>
+              <div class="veld-groep">
+                <label>Kaart — Reiskosten</label>
+                <input type="text" id="t-prijs-reiskosten" placeholder="In overleg. Bedrijfsauto via opdrachtgever mogelijk." />
+              </div>
+              <div class="veld-groep">
+                <label>Kaart — Minimum</label>
+                <input type="text" id="t-prijs-minimum" placeholder="3 uur per klus. Daarna per heel uur." />
+              </div>
+            </div>
           </div>
 
-          <button class="btn-opslaan" onclick="slaOpTeksten()">Teksten opslaan</button>
+          <!-- BESCHIKBAARHEID & CONTACT & FOOTER -->
+          <div class="tekst-sectie-titel">📅 Beschikbaarheid &nbsp;·&nbsp; 📬 Contact &nbsp;·&nbsp; 🔻 Footer</div>
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Beschikbaarheid — intro zin</label>
+                <input type="text" id="t-beschikbaar-intro" placeholder="Controleer wanneer Sepp vrij is." />
+              </div>
+              <div class="veld-groep">
+                <label>Contact — intro zin</label>
+                <input type="text" id="t-contact-intro" placeholder="Vertel wat u nodig heeft. Sepp reageert snel." />
+              </div>
+            </div>
+            <div>
+              <div class="veld-groep">
+                <label>Contact sidebar — titel</label>
+                <input type="text" id="t-contact-direct-titel" placeholder="Liever direct contact?" />
+              </div>
+              <div class="veld-groep">
+                <label>Contact sidebar — urgentie tekst</label>
+                <input type="text" id="t-contact-snel-tekst" placeholder="Snel nodig? Bel of app direct. Sepp reageert zelfde dag." />
+                <div class="hint">Tip: begin met <code>&lt;strong&gt;Snel nodig?&lt;/strong&gt;</code> voor vetgedrukt</div>
+              </div>
+              <div class="veld-groep">
+                <label>Footer — tagline</label>
+                <input type="text" id="t-footer-tagline" placeholder="Snel Even Perfect Personeel" />
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-opslaan" onclick="slaOpTeksten()">Alle teksten opslaan</button>
           <span class="opgeslagen-melding" id="melding-teksten">✓ Opgeslagen!</span>
         </div>
       </div>
@@ -778,16 +947,61 @@ function laadAlleWaarden() {
 
   // Teksten laden
   const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
-  setVal('t-hero-badge',      t.heroBadge      || '');
-  setVal('t-hero-titel1',     t.heroTitel1     || '');
-  setVal('t-hero-titel2',     t.heroTitel2     || '');
-  setVal('t-snel-intro',      t.snelIntro      || '');
-  setVal('t-snel-tekst',      t.snelTekst      || '');
-  setVal('t-even-intro',      t.evenIntro      || '');
-  setVal('t-even-tekst',      t.evenTekst      || '');
-  setVal('t-perfect-intro',   t.perfectIntro   || '');
-  setVal('t-over-sepp',       t.overSeppTekst  || '');
-  setVal('t-personeel-intro', t.personeelIntro || '');
+  const tv = (key) => t[key] || '';
+  setVal('t-hero-badge',           tv('heroBadge'));
+  setVal('t-hero-titel1',          tv('heroTitel1'));
+  setVal('t-hero-titel2',          tv('heroTitel2'));
+  setVal('t-hero-sub',             tv('heroSub'));
+  setVal('t-hero-btn-primary',     tv('heroBtnPrimary'));
+  setVal('t-hero-btn-secondary',   tv('heroBtnSecondary'));
+  setVal('t-snel-intro',           tv('snelIntro'));
+  setVal('t-snel-tekst',           tv('snelTekst'));
+  setVal('t-snel-card1-titel',     tv('snelCard1Titel'));
+  setVal('t-snel-card1-li1',       tv('snelCard1Li1'));
+  setVal('t-snel-card1-li2',       tv('snelCard1Li2'));
+  setVal('t-snel-card1-li3',       tv('snelCard1Li3'));
+  setVal('t-snel-card1-li4',       tv('snelCard1Li4'));
+  setVal('t-snel-card2-titel',     tv('snelCard2Titel'));
+  setVal('t-snel-card2-li1',       tv('snelCard2Li1'));
+  setVal('t-snel-card2-li2',       tv('snelCard2Li2'));
+  setVal('t-snel-card2-li3',       tv('snelCard2Li3'));
+  setVal('t-snel-card2-li4',       tv('snelCard2Li4'));
+  setVal('t-even-intro',           tv('evenIntro'));
+  setVal('t-even-tekst',           tv('evenTekst'));
+  setVal('t-even-tl1-titel',       tv('evenTl1Titel'));
+  setVal('t-even-tl1-sub',         tv('evenTl1Sub'));
+  setVal('t-even-tl2-titel',       tv('evenTl2Titel'));
+  setVal('t-even-tl2-sub',         tv('evenTl2Sub'));
+  setVal('t-even-tl3-titel',       tv('evenTl3Titel'));
+  setVal('t-even-tl3-sub',         tv('evenTl3Sub'));
+  setVal('t-even-tl4-titel',       tv('evenTl4Titel'));
+  setVal('t-even-tl4-sub',         tv('evenTl4Sub'));
+  setVal('t-even-tl5-titel',       tv('evenTl5Titel'));
+  setVal('t-even-tl5-sub',         tv('evenTl5Sub'));
+  setVal('t-even-stat1-num',       tv('evenStat1Num'));
+  setVal('t-even-stat1-label',     tv('evenStat1Label'));
+  setVal('t-even-stat2-num',       tv('evenStat2Num'));
+  setVal('t-even-stat2-label',     tv('evenStat2Label'));
+  setVal('t-even-stat3-num',       tv('evenStat3Num'));
+  setVal('t-even-stat3-label',     tv('evenStat3Label'));
+  setVal('t-perfect-intro',        tv('perfectIntro'));
+  setVal('t-profiel-leeftijd',     tv('profielLeeftijd'));
+  setVal('t-over-sepp',            tv('overSeppTekst'));
+  setVal('t-quality-1',            tv('quality1'));
+  setVal('t-quality-2',            tv('quality2'));
+  setVal('t-quality-3',            tv('quality3'));
+  setVal('t-quality-4',            tv('quality4'));
+  setVal('t-quality-5',            tv('quality5'));
+  setVal('t-quality-6',            tv('quality6'));
+  setVal('t-personeel-intro',      tv('personeelIntro'));
+  setVal('t-prijs-facturatie',     tv('prijsFacturatie'));
+  setVal('t-prijs-reiskosten',     tv('prijsReiskosten'));
+  setVal('t-prijs-minimum',        tv('prijsMinimum'));
+  setVal('t-beschikbaar-intro',    tv('beschikbaarIntro'));
+  setVal('t-contact-intro',        tv('contactIntro'));
+  setVal('t-contact-direct-titel', tv('contactDirectTitel'));
+  setVal('t-contact-snel-tekst',   tv('contactSnelTekst'));
+  setVal('t-footer-tagline',       tv('footerTagline'));
 }
 
 function setVal(id, val) {
@@ -797,17 +1011,62 @@ function setVal(id, val) {
 
 /* ---- Opslaan: websiteteksten ---- */
 function slaOpTeksten() {
+  function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
   const t = {
-    heroBadge:      document.getElementById('t-hero-badge').value.trim(),
-    heroTitel1:     document.getElementById('t-hero-titel1').value.trim(),
-    heroTitel2:     document.getElementById('t-hero-titel2').value.trim(),
-    snelIntro:      document.getElementById('t-snel-intro').value.trim(),
-    snelTekst:      document.getElementById('t-snel-tekst').value.trim(),
-    evenIntro:      document.getElementById('t-even-intro').value.trim(),
-    evenTekst:      document.getElementById('t-even-tekst').value.trim(),
-    perfectIntro:   document.getElementById('t-perfect-intro').value.trim(),
-    overSeppTekst:  document.getElementById('t-over-sepp').value.trim(),
-    personeelIntro: document.getElementById('t-personeel-intro').value.trim(),
+    heroBadge:         gv('t-hero-badge'),
+    heroTitel1:        gv('t-hero-titel1'),
+    heroTitel2:        gv('t-hero-titel2'),
+    heroSub:           gv('t-hero-sub'),
+    heroBtnPrimary:    gv('t-hero-btn-primary'),
+    heroBtnSecondary:  gv('t-hero-btn-secondary'),
+    snelIntro:         gv('t-snel-intro'),
+    snelTekst:         gv('t-snel-tekst'),
+    snelCard1Titel:    gv('t-snel-card1-titel'),
+    snelCard1Li1:      gv('t-snel-card1-li1'),
+    snelCard1Li2:      gv('t-snel-card1-li2'),
+    snelCard1Li3:      gv('t-snel-card1-li3'),
+    snelCard1Li4:      gv('t-snel-card1-li4'),
+    snelCard2Titel:    gv('t-snel-card2-titel'),
+    snelCard2Li1:      gv('t-snel-card2-li1'),
+    snelCard2Li2:      gv('t-snel-card2-li2'),
+    snelCard2Li3:      gv('t-snel-card2-li3'),
+    snelCard2Li4:      gv('t-snel-card2-li4'),
+    evenIntro:         gv('t-even-intro'),
+    evenTekst:         gv('t-even-tekst'),
+    evenTl1Titel:      gv('t-even-tl1-titel'),
+    evenTl1Sub:        gv('t-even-tl1-sub'),
+    evenTl2Titel:      gv('t-even-tl2-titel'),
+    evenTl2Sub:        gv('t-even-tl2-sub'),
+    evenTl3Titel:      gv('t-even-tl3-titel'),
+    evenTl3Sub:        gv('t-even-tl3-sub'),
+    evenTl4Titel:      gv('t-even-tl4-titel'),
+    evenTl4Sub:        gv('t-even-tl4-sub'),
+    evenTl5Titel:      gv('t-even-tl5-titel'),
+    evenTl5Sub:        gv('t-even-tl5-sub'),
+    evenStat1Num:      gv('t-even-stat1-num'),
+    evenStat1Label:    gv('t-even-stat1-label'),
+    evenStat2Num:      gv('t-even-stat2-num'),
+    evenStat2Label:    gv('t-even-stat2-label'),
+    evenStat3Num:      gv('t-even-stat3-num'),
+    evenStat3Label:    gv('t-even-stat3-label'),
+    perfectIntro:      gv('t-perfect-intro'),
+    profielLeeftijd:   gv('t-profiel-leeftijd'),
+    overSeppTekst:     gv('t-over-sepp'),
+    quality1:          gv('t-quality-1'),
+    quality2:          gv('t-quality-2'),
+    quality3:          gv('t-quality-3'),
+    quality4:          gv('t-quality-4'),
+    quality5:          gv('t-quality-5'),
+    quality6:          gv('t-quality-6'),
+    personeelIntro:    gv('t-personeel-intro'),
+    prijsFacturatie:   gv('t-prijs-facturatie'),
+    prijsReiskosten:   gv('t-prijs-reiskosten'),
+    prijsMinimum:      gv('t-prijs-minimum'),
+    beschikbaarIntro:  gv('t-beschikbaar-intro'),
+    contactIntro:      gv('t-contact-intro'),
+    contactDirectTitel:gv('t-contact-direct-titel'),
+    contactSnelTekst:  gv('t-contact-snel-tekst'),
+    footerTagline:     gv('t-footer-tagline'),
   };
   localStorage.setItem('seppTeksten', JSON.stringify(t));
   toonMelding('melding-teksten');
