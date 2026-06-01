@@ -463,12 +463,43 @@
   <main class="beheer-main">
 
     <!-- Status bar -->
-    <div class="status-bar">
+    <div class="status-bar" id="status-bar">
       <span>✓</span>
-      <span>Ingelogd als beheerder. Wijzigingen worden direct op de website zichtbaar.</span>
+      <span id="status-tekst">Ingelogd als beheerder. Wijzigingen worden via GitHub gepusht.</span>
     </div>
 
     <div class="beheer-grid">
+
+      <!-- ==========================================
+           GITHUB TOKEN
+      ========================================== -->
+      <div class="card-beheer full-width">
+        <div class="card-header">
+          <div class="card-header-icon">🔑</div>
+          <h2>GitHub Token</h2>
+        </div>
+        <div class="card-body">
+          <div class="teksten-kolommen">
+            <div>
+              <div class="veld-groep">
+                <label>Personal Access Token</label>
+                <input type="password" id="gh-token" placeholder="ghp_..." autocomplete="off" />
+                <div class="hint">Eenmalig invullen. Wordt opgeslagen in jouw browser.</div>
+              </div>
+              <button class="btn-opslaan" onclick="slaTokenOp()">Token opslaan</button>
+              <span class="opgeslagen-melding" id="melding-token">✓ Opgeslagen!</span>
+            </div>
+            <div style="font-size:0.83rem;color:var(--text-light);line-height:1.7;padding:10px 14px;background:var(--off);border-radius:8px;">
+              Eenmalig instellen:<br>
+              1. Ga naar <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--green);font-weight:600;">github.com/settings/tokens</a><br>
+              2. Klik <strong>Generate new token (classic)</strong><br>
+              3. Geef het een naam, vink <strong>repo</strong> aan<br>
+              4. Kopieer het token en plak het hierboven<br><br>
+              Na opslaan worden wijzigingen direct naar GitHub gepusht. Netlify deployt automatisch (~30 sec).
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ==========================================
            WEBSITETEKSTEN
@@ -890,64 +921,129 @@
 
 <script>
 /* =============================================
-   BEHEER JAVASCRIPT
+   BEHEER JAVASCRIPT — GitHub API versie
+   Data wordt opgeslagen als sepp-data.json
+   in de GitHub repo → Netlify deployt automatisch
 ============================================= */
 
-// ====================================================
-// STANDAARD WACHTWOORD: Verander dit na eerste login!
-// Wachtwoord wordt opgeslagen als hash in localStorage.
-// ====================================================
+const GH_OWNER  = 'Mies1975';
+const GH_REPO   = 'sepp';
+const GH_BRANCH = 'master';
+const GH_FILE   = 'sepp-data.json';
 const STANDAARD_WACHTWOORD = 'sepp2025';
 
+// Centrale data container (mirrors sepp-data.json)
+let huidigeBeheerData = { config: {}, teksten: {}, beschikbaarheid: {}, gcConfig: {} };
+
 /* ---- Authenticatie ---- */
-function getWachtwoord() {
-  return localStorage.getItem('seppBeheerWW') || STANDAARD_WACHTWOORD;
-}
+function getWachtwoord() { return localStorage.getItem('seppBeheerWW') || STANDAARD_WACHTWOORD; }
+function getToken()      { return localStorage.getItem('seppGHToken') || ''; }
 
 function probeerInloggen() {
   const input = document.getElementById('login-wachtwoord').value;
   const fout  = document.getElementById('login-error');
-
   if (input === getWachtwoord()) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('beheer-screen').style.display = 'block';
-    laadAlleWaarden();
-    renderBeheerKalender();
     fout.textContent = '';
+    const t = getToken();
+    if (t) document.getElementById('gh-token').value = t;
+    laadAlleWaarden();
   } else {
     fout.textContent = '✗ Onjuist wachtwoord. Probeer opnieuw.';
     document.getElementById('login-wachtwoord').value = '';
   }
 }
-
-document.getElementById('login-wachtwoord').addEventListener('keydown', (e) => {
+document.getElementById('login-wachtwoord').addEventListener('keydown', e => {
   if (e.key === 'Enter') probeerInloggen();
 });
-
 function uitloggen() {
-  document.getElementById('beheer-screen').style.display  = 'none';
-  document.getElementById('login-screen').style.display   = 'flex';
+  document.getElementById('beheer-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display  = 'flex';
   document.getElementById('login-wachtwoord').value = '';
 }
 
-/* ---- Waarden laden ---- */
-function laadAlleWaarden() {
-  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
+/* ---- Token ---- */
+function slaTokenOp() {
+  const t = document.getElementById('gh-token').value.trim();
+  if (t) { localStorage.setItem('seppGHToken', t); toonMelding('melding-token'); }
+}
 
+/* ---- GitHub API ---- */
+async function laadAlleWaarden() {
+  const token = getToken();
+  if (!token) { setStatus('⚠️ Vul eerst een GitHub token in (bovenaan de pagina).', true); return; }
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}`, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (resp.status === 404) {
+      setStatus('✓ Nog geen data op GitHub — vul de velden in en sla op.');
+      renderBeheerKalender();
+      return;
+    }
+    if (!resp.ok) { setStatus('⚠️ Fout bij ophalen (status ' + resp.status + '). Controleer je token.', true); return; }
+    const json    = await resp.json();
+    const content = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
+    huidigeBeheerData = JSON.parse(content);
+    vulVeldenIn();
+    beheerData = huidigeBeheerData.beschikbaarheid || {};
+    renderBeheerKalender();
+    setStatus('✓ Data geladen. Wijzigingen worden via GitHub naar de live website gepusht.');
+  } catch(e) {
+    setStatus('⚠️ Verbindingsfout: ' + e.message, true);
+  }
+}
+
+async function commitNaarGitHub(meldingId) {
+  const token = getToken();
+  if (!token) { alert('Voer eerst een GitHub token in.'); return; }
+  toonOverlay(true);
+  try {
+    const getResp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}`, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    let sha = null;
+    if (getResp.ok) sha = (await getResp.json()).sha;
+    const body = {
+      message: 'SEPP website bijgewerkt via beheerpaneel',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(huidigeBeheerData, null, 2)))),
+      branch:  GH_BRANCH
+    };
+    if (sha) body.sha = sha;
+    const putResp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`, {
+      method:  'PUT',
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body)
+    });
+    if (putResp.ok) {
+      toonMelding(meldingId);
+      setStatus('✓ Opgeslagen! Netlify deployt de wijziging — live over ~30 seconden.');
+    } else {
+      const err = await putResp.json();
+      alert('Fout bij opslaan: ' + (err.message || putResp.status) + '\nControleer of het token de juiste rechten heeft (scope: repo).');
+    }
+  } catch(e) {
+    alert('Verbindingsfout: ' + e.message);
+  } finally {
+    toonOverlay(false);
+  }
+}
+
+/* ---- Velden vullen vanuit huidigeBeheerData ---- */
+function vulVeldenIn() {
+  const cfg = huidigeBeheerData.config || {};
   setVal('b-telefoon',     cfg.telefoon    || '');
   setVal('b-telefoon-raw', cfg.telefoonRaw || '');
   setVal('b-email',        cfg.email       || '');
   setVal('b-tarief',       cfg.tarief      || '');
   setVal('b-kvk',          cfg.kvk         || '');
   setVal('b-btw',          cfg.btw         || '');
-
-  const gcCfg = JSON.parse(localStorage.getItem('seppGCConfig') || '{}');
-  setVal('b-gc-key', gcCfg.apiKey    || '');
-  setVal('b-gc-id',  gcCfg.calendarId || '');
-
-  // Teksten laden
-  const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
-  const tv = (key) => t[key] || '';
+  const gc = huidigeBeheerData.gcConfig || {};
+  setVal('b-gc-key', gc.apiKey     || '');
+  setVal('b-gc-id',  gc.calendarId || '');
+  const t  = huidigeBeheerData.teksten || {};
+  const tv = k => t[k] || '';
   setVal('t-hero-badge',           tv('heroBadge'));
   setVal('t-hero-titel1',          tv('heroTitel1'));
   setVal('t-hero-titel2',          tv('heroTitel2'));
@@ -1004,114 +1100,75 @@ function laadAlleWaarden() {
   setVal('t-footer-tagline',       tv('footerTagline'));
 }
 
-function setVal(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.value = val;
-}
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 
 /* ---- Opslaan: websiteteksten ---- */
 function slaOpTeksten() {
   function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
-  const t = {
-    heroBadge:         gv('t-hero-badge'),
-    heroTitel1:        gv('t-hero-titel1'),
-    heroTitel2:        gv('t-hero-titel2'),
-    heroSub:           gv('t-hero-sub'),
-    heroBtnPrimary:    gv('t-hero-btn-primary'),
-    heroBtnSecondary:  gv('t-hero-btn-secondary'),
-    snelIntro:         gv('t-snel-intro'),
-    snelTekst:         gv('t-snel-tekst'),
-    snelCard1Titel:    gv('t-snel-card1-titel'),
-    snelCard1Li1:      gv('t-snel-card1-li1'),
-    snelCard1Li2:      gv('t-snel-card1-li2'),
-    snelCard1Li3:      gv('t-snel-card1-li3'),
-    snelCard1Li4:      gv('t-snel-card1-li4'),
-    snelCard2Titel:    gv('t-snel-card2-titel'),
-    snelCard2Li1:      gv('t-snel-card2-li1'),
-    snelCard2Li2:      gv('t-snel-card2-li2'),
-    snelCard2Li3:      gv('t-snel-card2-li3'),
-    snelCard2Li4:      gv('t-snel-card2-li4'),
-    evenIntro:         gv('t-even-intro'),
-    evenTekst:         gv('t-even-tekst'),
-    evenTl1Titel:      gv('t-even-tl1-titel'),
-    evenTl1Sub:        gv('t-even-tl1-sub'),
-    evenTl2Titel:      gv('t-even-tl2-titel'),
-    evenTl2Sub:        gv('t-even-tl2-sub'),
-    evenTl3Titel:      gv('t-even-tl3-titel'),
-    evenTl3Sub:        gv('t-even-tl3-sub'),
-    evenTl4Titel:      gv('t-even-tl4-titel'),
-    evenTl4Sub:        gv('t-even-tl4-sub'),
-    evenTl5Titel:      gv('t-even-tl5-titel'),
-    evenTl5Sub:        gv('t-even-tl5-sub'),
-    evenStat1Num:      gv('t-even-stat1-num'),
-    evenStat1Label:    gv('t-even-stat1-label'),
-    evenStat2Num:      gv('t-even-stat2-num'),
-    evenStat2Label:    gv('t-even-stat2-label'),
-    evenStat3Num:      gv('t-even-stat3-num'),
-    evenStat3Label:    gv('t-even-stat3-label'),
-    perfectIntro:      gv('t-perfect-intro'),
-    profielLeeftijd:   gv('t-profiel-leeftijd'),
-    overSeppTekst:     gv('t-over-sepp'),
-    quality1:          gv('t-quality-1'),
-    quality2:          gv('t-quality-2'),
-    quality3:          gv('t-quality-3'),
-    quality4:          gv('t-quality-4'),
-    quality5:          gv('t-quality-5'),
-    quality6:          gv('t-quality-6'),
-    personeelIntro:    gv('t-personeel-intro'),
-    prijsFacturatie:   gv('t-prijs-facturatie'),
-    prijsReiskosten:   gv('t-prijs-reiskosten'),
-    prijsMinimum:      gv('t-prijs-minimum'),
-    beschikbaarIntro:  gv('t-beschikbaar-intro'),
-    contactIntro:      gv('t-contact-intro'),
-    contactDirectTitel:gv('t-contact-direct-titel'),
-    contactSnelTekst:  gv('t-contact-snel-tekst'),
-    footerTagline:     gv('t-footer-tagline'),
+  huidigeBeheerData.teksten = {
+    heroBadge: gv('t-hero-badge'), heroTitel1: gv('t-hero-titel1'), heroTitel2: gv('t-hero-titel2'),
+    heroSub: gv('t-hero-sub'), heroBtnPrimary: gv('t-hero-btn-primary'), heroBtnSecondary: gv('t-hero-btn-secondary'),
+    snelIntro: gv('t-snel-intro'), snelTekst: gv('t-snel-tekst'),
+    snelCard1Titel: gv('t-snel-card1-titel'), snelCard1Li1: gv('t-snel-card1-li1'), snelCard1Li2: gv('t-snel-card1-li2'), snelCard1Li3: gv('t-snel-card1-li3'), snelCard1Li4: gv('t-snel-card1-li4'),
+    snelCard2Titel: gv('t-snel-card2-titel'), snelCard2Li1: gv('t-snel-card2-li1'), snelCard2Li2: gv('t-snel-card2-li2'), snelCard2Li3: gv('t-snel-card2-li3'), snelCard2Li4: gv('t-snel-card2-li4'),
+    evenIntro: gv('t-even-intro'), evenTekst: gv('t-even-tekst'),
+    evenTl1Titel: gv('t-even-tl1-titel'), evenTl1Sub: gv('t-even-tl1-sub'), evenTl2Titel: gv('t-even-tl2-titel'), evenTl2Sub: gv('t-even-tl2-sub'),
+    evenTl3Titel: gv('t-even-tl3-titel'), evenTl3Sub: gv('t-even-tl3-sub'), evenTl4Titel: gv('t-even-tl4-titel'), evenTl4Sub: gv('t-even-tl4-sub'),
+    evenTl5Titel: gv('t-even-tl5-titel'), evenTl5Sub: gv('t-even-tl5-sub'),
+    evenStat1Num: gv('t-even-stat1-num'), evenStat1Label: gv('t-even-stat1-label'),
+    evenStat2Num: gv('t-even-stat2-num'), evenStat2Label: gv('t-even-stat2-label'),
+    evenStat3Num: gv('t-even-stat3-num'), evenStat3Label: gv('t-even-stat3-label'),
+    perfectIntro: gv('t-perfect-intro'), profielLeeftijd: gv('t-profiel-leeftijd'), overSeppTekst: gv('t-over-sepp'),
+    quality1: gv('t-quality-1'), quality2: gv('t-quality-2'), quality3: gv('t-quality-3'),
+    quality4: gv('t-quality-4'), quality5: gv('t-quality-5'), quality6: gv('t-quality-6'),
+    personeelIntro: gv('t-personeel-intro'), prijsFacturatie: gv('t-prijs-facturatie'),
+    prijsReiskosten: gv('t-prijs-reiskosten'), prijsMinimum: gv('t-prijs-minimum'),
+    beschikbaarIntro: gv('t-beschikbaar-intro'), contactIntro: gv('t-contact-intro'),
+    contactDirectTitel: gv('t-contact-direct-titel'), contactSnelTekst: gv('t-contact-snel-tekst'),
+    footerTagline: gv('t-footer-tagline'),
   };
-  localStorage.setItem('seppTeksten', JSON.stringify(t));
-  toonMelding('melding-teksten');
+  commitNaarGitHub('melding-teksten');
 }
 
 /* ---- Opslaan: contactgegevens ---- */
 function slaOpContactgegevens() {
-  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
-  cfg.telefoon    = document.getElementById('b-telefoon').value.trim();
-  cfg.telefoonRaw = document.getElementById('b-telefoon-raw').value.trim();
-  cfg.email       = document.getElementById('b-email').value.trim();
-  localStorage.setItem('seppConfig', JSON.stringify(cfg));
-  toonMelding('melding-contact');
+  huidigeBeheerData.config = Object.assign(huidigeBeheerData.config || {}, {
+    telefoon:    document.getElementById('b-telefoon').value.trim(),
+    telefoonRaw: document.getElementById('b-telefoon-raw').value.trim(),
+    email:       document.getElementById('b-email').value.trim(),
+  });
+  commitNaarGitHub('melding-contact');
 }
 
 /* ---- Opslaan: tarief & bedrijfsinfo ---- */
 function slaOpTarief() {
-  const cfg = JSON.parse(localStorage.getItem('seppConfig') || '{}');
-  cfg.tarief = document.getElementById('b-tarief').value.trim();
-  cfg.kvk    = document.getElementById('b-kvk').value.trim();
-  cfg.btw    = document.getElementById('b-btw').value.trim();
-  localStorage.setItem('seppConfig', JSON.stringify(cfg));
-  toonMelding('melding-tarief');
+  huidigeBeheerData.config = Object.assign(huidigeBeheerData.config || {}, {
+    tarief: document.getElementById('b-tarief').value.trim(),
+    kvk:    document.getElementById('b-kvk').value.trim(),
+    btw:    document.getElementById('b-btw').value.trim(),
+  });
+  commitNaarGitHub('melding-tarief');
 }
 
 /* ---- Google Calendar ---- */
 function slaOpGoogleCalendar() {
-  const gcCfg = {
+  huidigeBeheerData.gcConfig = {
     apiKey:     document.getElementById('b-gc-key').value.trim(),
     calendarId: document.getElementById('b-gc-id').value.trim(),
     actief:     true,
   };
-  localStorage.setItem('seppGCConfig', JSON.stringify(gcCfg));
-  toonMelding('melding-gc');
+  commitNaarGitHub('melding-gc');
 }
 
 /* ---- Beschikbaarheid kalender ---- */
-let beheerMaand     = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-let statusKeuze     = 'available';
-let beheerData      = JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}');
+let beheerMaand  = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let statusKeuze  = 'available';
+let beheerData   = {};
 
 const toelichtingen = {
-  available:   'Klik op een dag om die <strong>beschikbaar</strong> te zetten.',
-  busy:        'Klik op een dag om die als <strong>bezet</strong> te markeren.',
-  'on-request':'Klik op een dag om die als <strong>op aanvraag</strong> in te stellen.',
+  available:    'Klik op een dag om die <strong>beschikbaar</strong> te zetten.',
+  busy:         'Klik op een dag om die als <strong>bezet</strong> te markeren.',
+  'on-request': 'Klik op een dag om die als <strong>op aanvraag</strong> in te stellen.',
 };
 
 function setStatusKeuze(status) {
@@ -1122,75 +1179,41 @@ function setStatusKeuze(status) {
   document.getElementById('keuze-toelichting').innerHTML = toelichtingen[status];
 }
 
-function vorigeMaand() {
-  beheerMaand.setMonth(beheerMaand.getMonth() - 1);
-  renderBeheerKalender();
-}
-function volgendeMaand() {
-  beheerMaand.setMonth(beheerMaand.getMonth() + 1);
-  renderBeheerKalender();
-}
+function vorigeMaand()   { beheerMaand.setMonth(beheerMaand.getMonth() - 1); renderBeheerKalender(); }
+function volgendeMaand() { beheerMaand.setMonth(beheerMaand.getMonth() + 1); renderBeheerKalender(); }
 
 function renderBeheerKalender() {
-  const grid      = document.getElementById('kalender-grid');
-  const label     = document.getElementById('maand-label');
-  const vandaag   = new Date(); vandaag.setHours(0,0,0,0);
-  const dagNamen  = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
-
+  const grid     = document.getElementById('kalender-grid');
+  const label    = document.getElementById('maand-label');
+  const vandaag  = new Date(); vandaag.setHours(0,0,0,0);
+  const dagNamen = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
   label.textContent = beheerMaand.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' });
-
   grid.innerHTML = '';
-
-  // Kolomkoppen
-  dagNamen.forEach(d => {
-    const h = document.createElement('div');
-    h.className   = 'kalender-dag-header';
-    h.textContent = d;
-    grid.appendChild(h);
-  });
-
-  const eersteDag  = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), 1);
+  dagNamen.forEach(d => { const h = document.createElement('div'); h.className = 'kalender-dag-header'; h.textContent = d; grid.appendChild(h); });
+  const eersteDag   = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), 1);
   const aantalDagen = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth() + 1, 0).getDate();
-  // Maandag = 0
-  let startOffset = eersteDag.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-
-  // Lege cellen voor startoffset
-  for (let i = 0; i < startOffset; i++) {
-    const leeg = document.createElement('div');
-    leeg.className = 'kalender-dag leeg';
-    grid.appendChild(leeg);
-  }
-
+  let startOffset = eersteDag.getDay() - 1; if (startOffset < 0) startOffset = 6;
+  for (let i = 0; i < startOffset; i++) { const l = document.createElement('div'); l.className = 'kalender-dag leeg'; grid.appendChild(l); }
   for (let dag = 1; dag <= aantalDagen; dag++) {
-    const datum     = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), dag);
-    const key       = datumStr(datum);
-    const isVandaag = datum.getTime() === vandaag.getTime();
+    const datum    = new Date(beheerMaand.getFullYear(), beheerMaand.getMonth(), dag);
+    const key      = datumStr(datum);
+    const isVandaag  = datum.getTime() === vandaag.getTime();
     const isVerleden = datum < vandaag;
-    const status    = beheerData[key] || 'available';
-
+    const status   = beheerData[key] || 'available';
     const cel = document.createElement('div');
     cel.className = `kalender-dag ${status}${isVandaag ? ' vandaag' : ''}${isVerleden ? ' verleden' : ''}`;
     cel.innerHTML = `<div class="dag-num">${dag}</div>`;
-    cel.title     = `${dag} — ${statusLabel(status)} — klik om te wijzigen`;
-
-    if (!isVerleden) {
-      cel.addEventListener('click', () => {
-        beheerData[key] = statusKeuze;
-        renderBeheerKalender();
-      });
-    }
+    cel.title     = `${dag} — ${statusLabel(status)}`;
+    if (!isVerleden) { cel.addEventListener('click', () => { beheerData[key] = statusKeuze; renderBeheerKalender(); }); }
     grid.appendChild(cel);
   }
 }
 
-function statusLabel(s) {
-  return { available: 'Beschikbaar', busy: 'Bezet', 'on-request': 'Op aanvraag' }[s] || s;
-}
+function statusLabel(s) { return { available: 'Beschikbaar', busy: 'Bezet', 'on-request': 'Op aanvraag' }[s] || s; }
 
 function slaOpBeschikbaarheid() {
-  localStorage.setItem('seppBeschikbaarheid', JSON.stringify(beheerData));
-  toonMelding('melding-kalender');
+  huidigeBeheerData.beschikbaarheid = beheerData;
+  commitNaarGitHub('melding-kalender');
 }
 
 function resetMaand() {
@@ -1208,80 +1231,50 @@ function wijzigWachtwoord() {
   const oud    = document.getElementById('b-oud-ww').value;
   const nieuw  = document.getElementById('b-nieuw-ww').value;
   const nieuw2 = document.getElementById('b-nieuw-ww2').value;
-
-  if (oud !== getWachtwoord()) {
-    alert('Het huidige wachtwoord klopt niet.');
-    return;
-  }
-  if (nieuw.length < 6) {
-    alert('Kies een wachtwoord van minimaal 6 tekens.');
-    return;
-  }
-  if (nieuw !== nieuw2) {
-    alert('De nieuwe wachtwoorden komen niet overeen.');
-    return;
-  }
-
+  if (oud !== getWachtwoord())  { alert('Het huidige wachtwoord klopt niet.'); return; }
+  if (nieuw.length < 6)         { alert('Kies een wachtwoord van minimaal 6 tekens.'); return; }
+  if (nieuw !== nieuw2)         { alert('De nieuwe wachtwoorden komen niet overeen.'); return; }
   localStorage.setItem('seppBeheerWW', nieuw);
-  document.getElementById('b-oud-ww').value  = '';
-  document.getElementById('b-nieuw-ww').value  = '';
-  document.getElementById('b-nieuw-ww2').value = '';
+  ['b-oud-ww','b-nieuw-ww','b-nieuw-ww2'].forEach(id => { document.getElementById(id).value = ''; });
   toonMelding('melding-ww');
 }
 
 /* ---- Export / Import ---- */
 function alleData() {
-  const exportObj = {
-    seppConfig:          JSON.parse(localStorage.getItem('seppConfig') || '{}'),
-    seppBeschikbaarheid: JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}'),
-    seppGCConfig:        JSON.parse(localStorage.getItem('seppGCConfig') || '{}'),
-    seppTeksten:         JSON.parse(localStorage.getItem('seppTeksten') || '{}'),
-    exportDatum:         new Date().toISOString(),
-  };
-  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(huidigeBeheerData, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `sepp-instellingen-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `sepp-data-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-function importData() {
-  document.getElementById('import-file').click();
-}
+function importData() { document.getElementById('import-file').click(); }
 
 function verwerkImport(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = ev => {
     try {
-      const data = JSON.parse(ev.target.result);
-      if (data.seppConfig)          localStorage.setItem('seppConfig',          JSON.stringify(data.seppConfig));
-      if (data.seppBeschikbaarheid) localStorage.setItem('seppBeschikbaarheid', JSON.stringify(data.seppBeschikbaarheid));
-      if (data.seppGCConfig)        localStorage.setItem('seppGCConfig',        JSON.stringify(data.seppGCConfig));
-      if (data.seppTeksten)         localStorage.setItem('seppTeksten',         JSON.stringify(data.seppTeksten));
-      beheerData = JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}');
-      laadAlleWaarden();
+      huidigeBeheerData = JSON.parse(ev.target.result);
+      vulVeldenIn();
+      beheerData = huidigeBeheerData.beschikbaarheid || {};
       renderBeheerKalender();
-      alert('✓ Instellingen geïmporteerd!');
-    } catch {
-      alert('Fout: ongeldig bestand.');
-    }
+      commitNaarGitHub('melding-teksten');
+    } catch { alert('Fout: ongeldig bestand.'); }
   };
   reader.readAsText(file);
 }
 
 function resetAlles() {
-  if (!confirm('Weet je zeker dat je ALLE instellingen wilt wissen? Dit kan niet ongedaan worden.')) return;
-  ['seppConfig','seppBeschikbaarheid','seppGCConfig','seppGCBusy','seppGCSyncTijd','seppTeksten'].forEach(k => {
-    localStorage.removeItem(k);
-  });
+  if (!confirm('Weet je zeker dat je ALLE instellingen wilt wissen én naar GitHub wilt pushen?')) return;
+  huidigeBeheerData = { config: {}, teksten: {}, beschikbaarheid: {}, gcConfig: {} };
   beheerData = {};
-  laadAlleWaarden();
+  vulVeldenIn();
   renderBeheerKalender();
-  alert('Alle instellingen zijn gewist.');
+  commitNaarGitHub('melding-teksten');
 }
 
 /* ---- Hulpfuncties ---- */
@@ -1289,11 +1282,24 @@ function toonMelding(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.add('toon');
-  setTimeout(() => el.classList.remove('toon'), 3000);
+  setTimeout(() => el.classList.remove('toon'), 4000);
 }
-
-function datumStr(datum) {
-  return datum.toISOString().split('T')[0];
+function datumStr(datum) { return datum.toISOString().split('T')[0]; }
+function setStatus(tekst, fout) {
+  document.getElementById('status-tekst').textContent = tekst;
+  document.getElementById('status-bar').style.background = fout
+    ? 'rgba(200,50,50,0.07)' : 'rgba(46,204,113,0.08)';
+}
+function toonOverlay(toon) {
+  let ov = document.getElementById('laad-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'laad-overlay';
+    ov.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;';
+    ov.innerHTML = '<div style="background:white;border-radius:14px;padding:28px 36px;font-weight:600;font-size:1rem;">⏳ Opslaan naar GitHub…</div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = toon ? 'flex' : 'none';
 }
 </script>
 

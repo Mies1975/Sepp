@@ -75,9 +75,23 @@ const BESCHIKBAARHEID_HANDMATIG = {
 };
 
 /* =============================================
+   DATA LADEN VAN SERVER (sepp-data.json)
+   Wordt opgeslagen via beheer.html → GitHub
+============================================= */
+let seppData = { config: {}, teksten: {}, beschikbaarheid: {}, gcConfig: {} };
+
+async function laadSeppData() {
+  try {
+    const resp = await fetch('/sepp-data.json');
+    if (resp.ok) seppData = await resp.json();
+  } catch (e) { /* gebruik standaardwaarden */ }
+}
+
+/* =============================================
    INITIALISATIE
 ============================================= */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await laadSeppData();
   laadOpgeslagenInstellingen();
   laadTeksten();
   initNav();
@@ -103,20 +117,21 @@ document.addEventListener('DOMContentLoaded', () => {
    (worden opgeslagen via beheer.html)
 ============================================= */
 function laadOpgeslagenInstellingen() {
-  const opgeslagen = JSON.parse(localStorage.getItem('seppConfig') || '{}');
+  const c = seppData.config || {};
+  if (c.tarief)      CONTACT_CONFIG.tarief      = c.tarief;
+  if (c.email)       CONTACT_CONFIG.email        = c.email;
+  if (c.telefoon)    CONTACT_CONFIG.telefoon     = c.telefoon;
+  if (c.telefoonRaw) CONTACT_CONFIG.telefoonRaw  = c.telefoonRaw;
+  if (c.kvk)         CONTACT_CONFIG.kvk          = c.kvk;
+  if (c.btw)         CONTACT_CONFIG.btw          = c.btw;
 
-  if (opgeslagen.tarief)   CONTACT_CONFIG.tarief   = opgeslagen.tarief;
-  if (opgeslagen.email)    CONTACT_CONFIG.email     = opgeslagen.email;
-  if (opgeslagen.telefoon) CONTACT_CONFIG.telefoon  = opgeslagen.telefoon;
-  if (opgeslagen.telefoonRaw) CONTACT_CONFIG.telefoonRaw = opgeslagen.telefoonRaw;
-  if (opgeslagen.kvk)      CONTACT_CONFIG.kvk       = opgeslagen.kvk;
-  if (opgeslagen.btw)      CONTACT_CONFIG.btw       = opgeslagen.btw;
+  // Google Calendar config
+  const gc = seppData.gcConfig || {};
+  if (gc.apiKey)     GOOGLE_CALENDAR_CONFIG.API_KEY     = gc.apiKey;
+  if (gc.calendarId) GOOGLE_CALENDAR_CONFIG.CALENDAR_ID = gc.calendarId;
+  if (gc.actief)     GOOGLE_CALENDAR_CONFIG.ACTIEF      = gc.actief;
 
-  // Overschrijf handmatige beschikbaarheid indien opgeslagen
-  const opgeslagenBeschikbaarheid = JSON.parse(
-    localStorage.getItem('seppBeschikbaarheid') || '{}'
-  );
-  Object.assign(BESCHIKBAARHEID_HANDMATIG, opgeslagenBeschikbaarheid);
+  Object.assign(BESCHIKBAARHEID_HANDMATIG, seppData.beschikbaarheid || {});
 }
 
 /* =============================================
@@ -124,7 +139,7 @@ function laadOpgeslagenInstellingen() {
    (worden opgeslagen via beheer.html)
 ============================================= */
 function laadTeksten() {
-  const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
+  const t = seppData.teksten || {};
 
   // Hulpfunctie: zet tekstinhoud als waarde aanwezig is
   function zt(id, val) {
@@ -387,12 +402,11 @@ function renderKalender() {
 }
 
 function getBeschikbaarheid(datumKey) {
-  // Controleer opgeslagen Google Calendar data
   const gcData = JSON.parse(localStorage.getItem('seppGCBusy') || '[]');
   if (gcData.includes(datumKey)) return 'busy';
-
-  // Controleer handmatige instelling
-  return BESCHIKBAARHEID_HANDMATIG[datumKey] || 'available';
+  return (seppData.beschikbaarheid || {})[datumKey]
+    || BESCHIKBAARHEID_HANDMATIG[datumKey]
+    || 'available';
 }
 
 // Hulpfuncties datum
