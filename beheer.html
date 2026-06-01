@@ -398,6 +398,7 @@
       .card-beheer.full-width { grid-column: auto; }
       .beheer-main { padding: 0 16px; margin: 24px auto; }
       .beheer-header { padding: 14px 16px; }
+      .teksten-kolommen { grid-template-columns: 1fr !important; }
     }
   </style>
 </head>
@@ -448,6 +449,75 @@
     </div>
 
     <div class="beheer-grid">
+
+      <!-- ==========================================
+           WEBSITETEKSTEN
+      ========================================== -->
+      <div class="card-beheer full-width">
+        <div class="card-header">
+          <div class="card-header-icon">✏️</div>
+          <h2>Websiteteksten</h2>
+        </div>
+        <div class="card-body">
+
+          <div class="teksten-kolommen" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px;">
+
+            <!-- Linker kolom -->
+            <div>
+              <div class="veld-groep">
+                <label>Hero — badge tekst</label>
+                <input type="text" id="t-hero-badge" placeholder="Beschikbaar voor nieuwe klussen" />
+                <div class="hint">Groene badge bovenaan de pagina</div>
+              </div>
+              <div class="veld-groep">
+                <label>Hero — titel regel 1</label>
+                <input type="text" id="t-hero-titel1" placeholder="Extra handen" />
+              </div>
+              <div class="veld-groep">
+                <label>Hero — titel regel 2 (groen)</label>
+                <input type="text" id="t-hero-titel2" placeholder="wanneer u ze nodig heeft" />
+              </div>
+              <div class="veld-groep">
+                <label>Snel — intro zin</label>
+                <input type="text" id="t-snel-intro" placeholder="Geen weken wachten. Sepp staat binnen een dag klaar voor uw klus." />
+              </div>
+              <div class="veld-groep">
+                <label>Snel — bodytekst</label>
+                <textarea id="t-snel-tekst" rows="3" placeholder="Van rijden en bezorgen tot meewerken op locatie..."></textarea>
+              </div>
+            </div>
+
+            <!-- Rechter kolom -->
+            <div>
+              <div class="veld-groep">
+                <label>Even — intro zin</label>
+                <input type="text" id="t-even-intro" placeholder="Tijdelijk, op afroep, geen verplichtingen." />
+              </div>
+              <div class="veld-groep">
+                <label>Even — bodytekst</label>
+                <textarea id="t-even-tekst" rows="3" placeholder="Klussen vanaf 3 uur. Sepp werkt het liefst op de achtergrond..."></textarea>
+              </div>
+              <div class="veld-groep">
+                <label>Perfect — intro zin</label>
+                <input type="text" id="t-perfect-intro" placeholder="Geen praatjes, wél meters maken." />
+              </div>
+              <div class="veld-groep">
+                <label>Over Sepp — citaat</label>
+                <textarea id="t-over-sepp" rows="3" placeholder='"Ik ben Sepp: aanpakker, op tijd, leer snel.&#10;Geen praatjes, wél meters maken."'></textarea>
+                <div class="hint">Gebruik Enter voor een nieuwe regel</div>
+              </div>
+              <div class="veld-groep">
+                <label>Personeel — intro zin</label>
+                <input type="text" id="t-personeel-intro" placeholder="Helder en eerlijk. Geen verrassingen achteraf." />
+              </div>
+            </div>
+
+          </div>
+
+          <button class="btn-opslaan" onclick="slaOpTeksten()">Teksten opslaan</button>
+          <span class="opgeslagen-melding" id="melding-teksten">✓ Opgeslagen!</span>
+        </div>
+      </div>
 
       <!-- ==========================================
            CONTACTGEGEVENS
@@ -705,11 +775,42 @@ function laadAlleWaarden() {
   const gcCfg = JSON.parse(localStorage.getItem('seppGCConfig') || '{}');
   setVal('b-gc-key', gcCfg.apiKey    || '');
   setVal('b-gc-id',  gcCfg.calendarId || '');
+
+  // Teksten laden
+  const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
+  setVal('t-hero-badge',      t.heroBadge      || '');
+  setVal('t-hero-titel1',     t.heroTitel1     || '');
+  setVal('t-hero-titel2',     t.heroTitel2     || '');
+  setVal('t-snel-intro',      t.snelIntro      || '');
+  setVal('t-snel-tekst',      t.snelTekst      || '');
+  setVal('t-even-intro',      t.evenIntro      || '');
+  setVal('t-even-tekst',      t.evenTekst      || '');
+  setVal('t-perfect-intro',   t.perfectIntro   || '');
+  setVal('t-over-sepp',       t.overSeppTekst  || '');
+  setVal('t-personeel-intro', t.personeelIntro || '');
 }
 
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el) el.value = val;
+}
+
+/* ---- Opslaan: websiteteksten ---- */
+function slaOpTeksten() {
+  const t = {
+    heroBadge:      document.getElementById('t-hero-badge').value.trim(),
+    heroTitel1:     document.getElementById('t-hero-titel1').value.trim(),
+    heroTitel2:     document.getElementById('t-hero-titel2').value.trim(),
+    snelIntro:      document.getElementById('t-snel-intro').value.trim(),
+    snelTekst:      document.getElementById('t-snel-tekst').value.trim(),
+    evenIntro:      document.getElementById('t-even-intro').value.trim(),
+    evenTekst:      document.getElementById('t-even-tekst').value.trim(),
+    perfectIntro:   document.getElementById('t-perfect-intro').value.trim(),
+    overSeppTekst:  document.getElementById('t-over-sepp').value.trim(),
+    personeelIntro: document.getElementById('t-personeel-intro').value.trim(),
+  };
+  localStorage.setItem('seppTeksten', JSON.stringify(t));
+  toonMelding('melding-teksten');
 }
 
 /* ---- Opslaan: contactgegevens ---- */
@@ -875,6 +976,7 @@ function alleData() {
     seppConfig:          JSON.parse(localStorage.getItem('seppConfig') || '{}'),
     seppBeschikbaarheid: JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}'),
     seppGCConfig:        JSON.parse(localStorage.getItem('seppGCConfig') || '{}'),
+    seppTeksten:         JSON.parse(localStorage.getItem('seppTeksten') || '{}'),
     exportDatum:         new Date().toISOString(),
   };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
@@ -900,6 +1002,7 @@ function verwerkImport(e) {
       if (data.seppConfig)          localStorage.setItem('seppConfig',          JSON.stringify(data.seppConfig));
       if (data.seppBeschikbaarheid) localStorage.setItem('seppBeschikbaarheid', JSON.stringify(data.seppBeschikbaarheid));
       if (data.seppGCConfig)        localStorage.setItem('seppGCConfig',        JSON.stringify(data.seppGCConfig));
+      if (data.seppTeksten)         localStorage.setItem('seppTeksten',         JSON.stringify(data.seppTeksten));
       beheerData = JSON.parse(localStorage.getItem('seppBeschikbaarheid') || '{}');
       laadAlleWaarden();
       renderBeheerKalender();
@@ -913,7 +1016,7 @@ function verwerkImport(e) {
 
 function resetAlles() {
   if (!confirm('Weet je zeker dat je ALLE instellingen wilt wissen? Dit kan niet ongedaan worden.')) return;
-  ['seppConfig','seppBeschikbaarheid','seppGCConfig','seppGCBusy','seppGCSyncTijd'].forEach(k => {
+  ['seppConfig','seppBeschikbaarheid','seppGCConfig','seppGCBusy','seppGCSyncTijd','seppTeksten'].forEach(k => {
     localStorage.removeItem(k);
   });
   beheerData = {};

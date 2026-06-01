@@ -79,6 +79,7 @@ const BESCHIKBAARHEID_HANDMATIG = {
 ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
   laadOpgeslagenInstellingen();
+  laadTeksten();
   initNav();
   initScrollAnimaties();
   initKalender();
@@ -116,6 +117,52 @@ function laadOpgeslagenInstellingen() {
     localStorage.getItem('seppBeschikbaarheid') || '{}'
   );
   Object.assign(BESCHIKBAARHEID_HANDMATIG, opgeslagenBeschikbaarheid);
+}
+
+/* =============================================
+   WEBSITETEKSTEN LADEN
+   (worden opgeslagen via beheer.html)
+============================================= */
+function laadTeksten() {
+  const t = JSON.parse(localStorage.getItem('seppTeksten') || '{}');
+
+  // Hero badge (behoudt de groene stip)
+  if (t.heroBadge) {
+    const badge = document.getElementById('hero-badge');
+    if (badge) badge.innerHTML = '<span class="dot"></span> ' + t.heroBadge;
+  }
+
+  // Hero h1: twee regels
+  if (t.heroTitel1 || t.heroTitel2) {
+    const h1 = document.getElementById('hero-titel');
+    if (h1) {
+      const r1 = t.heroTitel1 || 'Extra handen';
+      const r2 = t.heroTitel2 || 'wanneer u ze nodig heeft';
+      h1.innerHTML = r1 + '<br /><span class="highlight">' + r2 + '</span>';
+    }
+  }
+
+  // Sectieteksten
+  const velden = [
+    ['snel-intro',      t.snelIntro],
+    ['snel-tekst',      t.snelTekst],
+    ['even-intro',      t.evenIntro],
+    ['even-tekst',      t.evenTekst],
+    ['perfect-intro',   t.perfectIntro],
+    ['personeel-intro', t.personeelIntro],
+  ];
+  velden.forEach(([id, val]) => {
+    if (val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+  });
+
+  // Over Sepp blockquote (ondersteunt regeleinden via <br>)
+  if (t.overSeppTekst) {
+    const bq = document.getElementById('over-sepp-quote');
+    if (bq) bq.innerHTML = t.overSeppTekst.replace(/\n/g, '<br />');
+  }
 }
 
 /* =============================================
