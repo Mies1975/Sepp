@@ -1,5 +1,9 @@
 {
-  "config": {},
+  "config": {
+    "telefoon": "+31643827976",
+    "telefoonRaw": "+31643827976",
+    "email": "seppfeijten@gmail.com"
+  },
   "teksten": {
     "heroBadge": "",
     "heroTitel1": "",
