@@ -1,17 +1,13 @@
 {
-  "config": {
-    "telefoon": "",
-    "telefoonRaw": "",
-    "email": "seppfeijten@gmail.com"
-  },
+  "config": {},
   "teksten": {
     "heroBadge": "",
     "heroTitel1": "",
     "heroTitel2": "",
-    "heroSub": "",
+    "heroSub": "Snel inzetbaar  •  €{20} per uur  •  Rijbewijs B",
     "heroBtnPrimary": "",
     "heroBtnSecondary": "",
-    "snelIntro": "Geen weken wachten. Sepp staat snel voor u klaar. Vooral in Midden-Nederland. Sepp woont zelf in Hilversum.",
+    "snelIntro": "Geen weken wachten. Sepp staat snel voor u klaar",
     "snelTekst": "",
     "snelCard1Titel": "",
     "snelCard1Li1": "",
