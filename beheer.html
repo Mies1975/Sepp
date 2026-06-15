@@ -1112,7 +1112,12 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('focus', function() {
       var self = this;
       setTimeout(function() {
-        try { self.setSelectionRange(0, 0); } catch(e) {}
+        try {
+          // Alleen ingrijpen als iOS alles heeft geselecteerd
+          if (self.selectionStart === 0 && self.selectionEnd === self.value.length && self.value.length > 0) {
+            self.setSelectionRange(0, 0);
+          }
+        } catch(e) {}
       }, 50);
     });
   });
