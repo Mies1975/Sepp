@@ -1106,6 +1106,19 @@ function setVal(id, val) {
   el.value = val;
 }
 
+// iOS fix: voorkom dat tikken alles selecteert en vervangt
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#beheer-screen input[type=text], #beheer-screen textarea').forEach(function(el) {
+    el.addEventListener('focus', function() {
+      var self = this;
+      var pos = self.value.length;
+      setTimeout(function() {
+        try { self.setSelectionRange(pos, pos); } catch(e) {}
+      }, 50);
+    });
+  });
+});
+
 /* ---- Opslaan: websiteteksten ---- */
 function slaOpTeksten() {
   function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
