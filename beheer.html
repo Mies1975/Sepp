@@ -1111,9 +1111,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('#beheer-screen input[type=text], #beheer-screen textarea').forEach(function(el) {
     el.addEventListener('focus', function() {
       var self = this;
-      var pos = self.value.length;
       setTimeout(function() {
-        try { self.setSelectionRange(pos, pos); } catch(e) {}
+        try { self.setSelectionRange(0, 0); } catch(e) {}
       }, 50);
     });
   });
