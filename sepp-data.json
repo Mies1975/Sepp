@@ -2,7 +2,10 @@
   "config": {
     "tarief": "",
     "kvk": "",
-    "btw": "NL005106845B75"
+    "btw": "NL005106845B75",
+    "telefoon": "",
+    "telefoonRaw": "",
+    "email": "seppfeijten@gmail.com"
   },
   "teksten": {},
   "beschikbaarheid": {
