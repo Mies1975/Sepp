@@ -1100,7 +1100,16 @@ function vulVeldenIn() {
   setVal('t-footer-tagline',       tv('footerTagline'));
 }
 
-function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  // Zorg dat klikken/tikken de cursor plaatst, niet alles selecteert
+  el.addEventListener('focus', function() {
+    const len = this.value.length;
+    try { this.setSelectionRange(len, len); } catch(e) {}
+  }, { once: false });
+}
 
 /* ---- Opslaan: websiteteksten ---- */
 function slaOpTeksten() {
