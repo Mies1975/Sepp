@@ -1,5 +1,9 @@
 {
-  "config": {},
+  "config": {
+    "tarief": "",
+    "kvk": "",
+    "btw": "NL005106845B75"
+  },
   "teksten": {},
   "beschikbaarheid": {
     "2026-06-10": "busy",
