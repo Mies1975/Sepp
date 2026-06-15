@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEPP — Facturen & Uren</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init('hQMiMuNu1yK1YsTdP');</script>
+  <style>
+    :root {
+      --green:       #2ECC71;
+      --green-dark:  #1a9e53;
+      --green-light: #d4f5e4;
+      --orange:      #FF6B35;
+      --orange-dark: #e0541c;
+      --dark:        #0d1a0e;
+      --text:        #1a2a1a;
+      --text-light:  #5a6e5a;
+      --white:       #ffffff;
+      --off-white:   #f7fbf7;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --font:        'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--off-white);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: var(--dark);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: 2px;
+    }
+    .logo span { color: var(--orange); }
+    header p { color: #6a8a6a; font-size: 0.85rem; }
+
+    /* ===== TABS ===== */
+    .tabs {
+      background: var(--white);
+      border-bottom: 2px solid var(--green-light);
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 14px 24px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      color: var(--green-dark);
+      border-bottom-color: var(--green);
+    }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ===== CONTENT ===== */
+    .page { display: none; padding: 24px 16px; max-width: 680px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--green-light);
+    }
+
+    /* ===== FORMULIER ===== */
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--text-light); display: block; margin-bottom: 4px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #d8ecd8;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--off-white);
+      transition: border 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      background: var(--white);
+    }
+    textarea { resize: vertical; min-height: 70px; }
+
+    /* ===== KNOPPEN ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-green { background: var(--green); color: var(--white); }
+    .btn-green:hover { background: var(--green-dark); }
+    .btn-orange { background: var(--orange); color: var(--white); }
+    .btn-orange:hover { background: var(--orange-dark); }
+    .btn-ghost { background: transparent; color: var(--text-light); border: 1.5px solid #d8ecd8; }
+    .btn-ghost:hover { border-color: var(--green); color: var(--green-dark); }
+    .btn-sm { padding: 7px 12px; font-size: 0.8rem; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    .btn-danger:hover { background: #fca5a5; }
+
+    /* ===== TOGGLE ===== */
+    .toggle-group {
+      display: flex;
+      background: var(--off-white);
+      border-radius: var(--radius-sm);
+      border: 1.5px solid #d8ecd8;
+      overflow: hidden;
+    }
+    .toggle-group button {
+      flex: 1;
+      padding: 9px 8px;
+      border: none;
+      background: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-group button.active {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    /* ===== LIJST ===== */
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid #d8ecd8;
+      margin-bottom: 8px;
+      background: var(--off-white);
+    }
+    .list-item .info { flex: 1; min-width: 0; }
+    .list-item .info strong { display: block; font-size: 0.95rem; }
+    .list-item .info small { color: var(--text-light); font-size: 0.8rem; }
+    .list-item .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ===== BADGE ===== */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-green { background: var(--green-light); color: var(--green-dark); }
+    .badge-orange { background: #ffe5d9; color: var(--orange-dark); }
+
+    /* ===== LEGE STAAT ===== */
+    .empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-light);
+    }
+    .empty span { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    /* ===== FACTUUR PREVIEW ===== */
+    #factuur-preview {
+      display: none;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    #factuur-preview.zichtbaar { display: block; }
+
+    /* ===== PRINT / PDF ===== */
+    @media print {
+      header, .tabs, .page > .card:not(.factuur-print), .btn, #factuur-acties, body > *:not(#print-wrapper) {
+        display: none !important;
+      }
+      #print-wrapper {
+        display: block !important;
+      }
+      body { background: white; }
+      .factuur-doc { max-width: 100%; box-shadow: none; padding: 0; }
+    }
+
+    #print-wrapper { display: none; }
+
+    /* ===== FACTUUR DOCUMENT ===== */
+    .factuur-doc {
+      font-family: var(--font);
+      color: #1a1a1a;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .factuur-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid var(--green);
+    }
+    .factuur-logo {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: 3px;
+      line-height: 1;
+    }
+    .factuur-logo small {
+      display: block;
+      font-size: 0.55rem;
+      letter-spacing: 1.5px;
+      color: var(--orange);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .factuur-meta { text-align: right; font-size: 0.85rem; }
+    .factuur-meta strong { font-size: 1.1rem; color: var(--green-dark); }
+    .factuur-meta p { color: #555; margin-top: 2px; }
+
+    .factuur-partijen {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    .factuur-partij h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .factuur-partij p { font-size: 0.9rem; line-height: 1.6; }
+
+    .factuur-tabel { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.88rem; }
+    .factuur-tabel th {
+      background: var(--green);
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 0.8rem;
+    }
+    .factuur-tabel td { padding: 9px 10px; border-bottom: 1px solid #e8f5e9; }
+    .factuur-tabel tr:nth-child(even) td { background: #f7fbf7; }
+    .factuur-tabel td:last-child, .factuur-tabel th:last-child { text-align: right; }
+
+    .factuur-totaal {
+      margin-left: auto;
+      width: 260px;
+      font-size: 0.88rem;
+    }
+    .factuur-totaal-rij {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #e8f5e9;
+    }
+    .factuur-totaal-rij.eindtotaal {
+      font-weight: 700;
+      font-size: 1rem;
+      border-bottom: none;
+      border-top: 2px solid var(--green);
+      padding-top: 8px;
+      margin-top: 4px;
+      color: var(--green-dark);
+    }
+
+    .factuur-betaling {
+      margin-top: 28px;
+      padding: 14px;
+      background: var(--green-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .factuur-betaling strong { color: var(--green-dark); }
+
+    .factuur-footer {
+      margin-top: 24px;
+      font-size: 0.78rem;
+      color: #888;
+      text-align: center;
+      border-top: 1px solid #e8f5e9;
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SEPP<span>.</span></div>
+  <p>Urenregistratie & Facturen</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="toonTab('klanten')">Klanten</button>
+  <button class="tab" onclick="toonTab('uren')">Uren / Klussen</button>
+  <button class="tab" onclick="toonTab('factuur')">Factuur maken</button>
+  <button class="tab" onclick="toonTab('archief')">Archief</button>
+</div>
+
+<!-- ===== KLANTEN ===== -->
+<div class="page active" id="tab-klanten">
+  <div class="card">
+    <h2>Nieuwe klant toevoegen</h2>
+    <div class="form-grid">
+      <div>
+        <label>Naam bedrijf of persoon</label>
+        <input type="text" id="k-naam" placeholder="Bijv. Jansen Installaties" />
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Contactpersoon</label>
+          <input type="text" id="k-contact" placeholder="Optioneel" />
+        </div>
+        <div>
+          <label>E-mailadres</label>
+          <input type="email" id="k-email" placeholder="Optioneel" />
+        </div>
+      </div>
+      <div>
+        <label>Adres</label>
+        <input type="text" id="k-adres" placeholder="Straat en huisnummer" />
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Postcode</label>
+          <input type="text" id="k-postcode" placeholder="1234 AB" />
+        </div>
+        <div>
+          <label>Plaats</label>
+          <input type="text" id="k-plaats" placeholder="Amsterdam" />
+        </div>
+      </div>
+      <div>
+        <label>BTW-nummer (optioneel)</label>
+        <input type="text" id="k-btw" placeholder="NL..." />
+      </div>
+      <button class="btn btn-green" onclick="klantOpslaan()">+ Klant opslaan</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Mijn klanten</h2>
+    <div id="klanten-lijst"></div>
+  </div>
+</div>
+
+<!-- ===== UREN ===== -->
+<div class="page" id="tab-uren">
+  <div class="card">
+    <h2>Uren of klus registreren</h2>
+    <div class="form-grid">
+      <div>
+        <label>Klant</label>
+        <select id="u-klant">
+          <option value="">— Kies een klant —</option>
+        </select>
+      </div>
+      <div>
+        <label>Datum</label>
+        <input type="date" id="u-datum" />
+      </div>
+      <div>
+        <label>Type</label>
+        <div class="toggle-group">
+          <button class="active" id="type-uur" onclick="setType('uur')">Per uur</button>
+          <button id="type-vast" onclick="setType('vast')">Vast bedrag</button>
+        </div>
+      </div>
+      <div id="uur-veld">
+        <label>Aantal uren</label>
+        <input type="number" id="u-uren" placeholder="Bijv. 3.5" step="0.25" min="0" />
+      </div>
+      <div id="vast-veld" style="display:none">
+        <label>Bedrag (€)</label>
+        <input type="number" id="u-vast" placeholder="Bijv. 150" step="0.01" min="0" />
+      </div>
+      <div>
+        <label>BTW</label>
+        <div class="toggle-group">
+          <button class="active" id="btw-incl" onclick="setBtw('incl')">€20 is incl. BTW</button>
+          <button id="btw-excl" onclick="setBtw('excl')">€20 is excl. BTW</button>
+        </div>
+      </div>
+      <div>
+        <label>Omschrijving</label>
+        <textarea id="u-omschrijving" placeholder="Wat heb je gedaan?"></textarea>
+      </div>
+      <button class="btn btn-green" onclick="urenOpslaan()">+ Registratie opslaan</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Geregistreerde uren & klussen</h2>
+    <div id="uren-lijst"></div>
+  </div>
+</div>
+
+<!-- ===== FACTUUR ===== -->
+<div class="page" id="tab-factuur">
+  <div class="card">
+    <h2>Factuur aanmaken</h2>
+    <div class="form-grid">
+      <div>
+        <label>Klant</label>
+        <select id="f-klant" onchange="filterUrenVoorFactuur()">
+          <option value="">— Kies een klant —</option>
+        </select>
+      </div>
+      <div id="f-regels-wrapper" style="display:none">
+        <label>Selecteer regels voor deze factuur</label>
+        <div id="f-regels-lijst"></div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Factuurnummer</label>
+          <input type="text" id="f-nummer" readonly style="background:#e8f5e9; font-weight:700;" />
+        </div>
+        <div>
+          <label>Factuurdatum</label>
+          <input type="date" id="f-datum" />
+        </div>
+      </div>
+      <div>
+        <label>Betalingstermijn (dagen)</label>
+        <input type="number" id="f-termijn" value="14" min="1" />
+      </div>
+      <div>
+        <label>Extra opmerking (optioneel)</label>
+        <textarea id="f-opmerking" placeholder="Bijv. Bedankt voor de samenwerking!"></textarea>
+      </div>
+      <button class="btn btn-orange" onclick="maakFactuur()">Factuur genereren →</button>
+    </div>
+  </div>
+
+  <div id="factuur-preview">
+    <div id="factuur-acties" style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn btn-orange" onclick="printFactuur()">⬇ Opslaan als PDF</button>
+      <button class="btn btn-ghost" onclick="sluitFactuur()">× Sluiten</button>
+    </div>
+    <div id="factuur-inhoud" class="factuur-doc"></div>
+  </div>
+</div>
+
+<!-- ===== ARCHIEF ===== -->
+<div class="page" id="tab-archief">
+  <div class="card">
+    <h2>Gefactureerde regels</h2>
+    <div id="archief-lijst"></div>
+  </div>
+</div>
+
+<!-- Print wrapper -->
+<div id="print-wrapper">
+  <div id="print-inhoud"></div>
+</div>
+
+<script>
+  // ===== DATA =====
+  function laad(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
+  function sla(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+  let klanten = laad('sepp_klanten');
+  let uren = laad('sepp_uren');
+  let factuurTeller = parseInt(localStorage.getItem('sepp_factuur_teller') || '1');
+  let regelsType = 'uur';
+  let btwType = 'incl';
+  const TARIEF = 20;
+  const BTW = 0.21;
+
+  // ===== TABS =====
+  function toonTab(naam) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + naam).classList.add('active');
+    event.target.classList.add('active');
+    if (naam === 'uren') vulKlantenSelect('u-klant');
+    if (naam === 'factuur') { vulKlantenSelect('f-klant'); initFactuurTab(); }
+    if (naam === 'archief') renderArchief();
+  }
+
+  // ===== KLANTEN =====
+  function klantOpslaan() {
+    const naam = document.getElementById('k-naam').value.trim();
+    if (!naam) return alert('Vul een naam in.');
+    const klant = {
+      id: Date.now(),
+      naam,
+      contact: document.getElementById('k-contact').value.trim(),
+      email: document.getElementById('k-email').value.trim(),
+      adres: document.getElementById('k-adres').value.trim(),
+      postcode: document.getElementById('k-postcode').value.trim(),
+      plaats: document.getElementById('k-plaats').value.trim(),
+      btw: document.getElementById('k-btw').value.trim(),
+    };
+    klanten.push(klant);
+    sla('sepp_klanten', klanten);
+    ['k-naam','k-contact','k-email','k-adres','k-postcode','k-plaats','k-btw'].forEach(id => document.getElementById(id).value = '');
+    renderKlanten();
+  }
+
+  function klantVerwijderen(id) {
+    if (!confirm('Klant verwijderen?')) return;
+    klanten = klanten.filter(k => k.id !== id);
+    sla('sepp_klanten', klanten);
+    renderKlanten();
+  }
+
+  function renderKlanten() {
+    const el = document.getElementById('klanten-lijst');
+    if (!klanten.length) { el.innerHTML = '<div class="empty"><span>👤</span>Nog geen klanten toegevoegd.</div>'; return; }
+    el.innerHTML = klanten.map(k => `
+      <div class="list-item">
+        <div class="info">
+          <strong>${k.naam}</strong>
+          <small>${[k.adres, k.postcode, k.plaats].filter(Boolean).join(', ') || 'Geen adres'}</small>
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-danger" onclick="klantVerwijderen(${k.id})">Verwijderen</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function vulKlantenSelect(selectId) {
+    const sel = document.getElementById(selectId);
+    const huidig = sel.value;
+    sel.innerHTML = '<option value="">— Kies een klant —</option>' +
+      klanten.map(k => `<option value="${k.id}" ${k.id == huidig ? 'selected' : ''}>${k.naam}</option>`).join('');
+  }
+
+  // ===== UREN =====
+  function setType(type) {
+    regelsType = type;
+    document.getElementById('type-uur').classList.toggle('active', type === 'uur');
+    document.getElementById('type-vast').classList.toggle('active', type === 'vast');
+    document.getElementById('uur-veld').style.display = type === 'uur' ? '' : 'none';
+    document.getElementById('vast-veld').style.display = type === 'vast' ? '' : 'none';
+  }
+
+  function setBtw(type) {
+    btwType = type;
+    document.getElementById('btw-incl').classList.toggle('active', type === 'incl');
+    document.getElementById('btw-excl').classList.toggle('active', type === 'excl');
+  }
+
+  function urenOpslaan() {
+    const klantId = parseInt(document.getElementById('u-klant').value);
+    if (!klantId) return alert('Kies een klant.');
+    const datum = document.getElementById('u-datum').value;
+    if (!datum) return alert('Kies een datum.');
+    const omschrijving = document.getElementById('u-omschrijving').value.trim();
+
+    let uren_aantal = null, vast_bedrag = null;
+    if (regelsType === 'uur') {
+      uren_aantal = parseFloat(document.getElementById('u-uren').value);
+      if (!uren_aantal || uren_aantal <= 0) return alert('Vul het aantal uren in.');
+    } else {
+      vast_bedrag = parseFloat(document.getElementById('u-vast').value);
+      if (!vast_bedrag || vast_bedrag <= 0) return alert('Vul een bedrag in.');
+    }
+
+    const klant = klanten.find(k => k.id === klantId);
+    const regel = {
+      id: Date.now(),
+      klantId, klantNaam: klant.naam,
+      datum, omschrijving,
+      type: regelsType,
+      uren: uren_aantal,
+      vastBedrag: vast_bedrag,
+      btwType,
+      gefactureerd: false,
+    };
+    uren.push(regel);
+    sla('sepp_uren', uren);
+    document.getElementById('u-uren').value = '';
+    document.getElementById('u-vast').value = '';
+    document.getElementById('u-omschrijving').value = '';
+    renderUren();
+  }
+
+  function regelVerwijderen(id) {
+    if (!confirm('Registratie verwijderen?')) return;
+    uren = uren.filter(u => u.id !== id);
+    sla('sepp_uren', uren);
+    renderUren();
+  }
+
+  function berekenBedragen(regel) {
+    let exclBtw, btwBedrag, inclBtw;
+    if (regel.type === 'vast') {
+      if (regel.btwType === 'incl') {
+        inclBtw = regel.vastBedrag;
+        exclBtw = inclBtw / (1 + BTW);
+        btwBedrag = inclBtw - exclBtw;
+      } else {
+        exclBtw = regel.vastBedrag;
+        btwBedrag = exclBtw * BTW;
+        inclBtw = exclBtw + btwBedrag;
+      }
+    } else {
+      if (regel.btwType === 'incl') {
+        inclBtw = regel.uren * TARIEF;
+        exclBtw = inclBtw / (1 + BTW);
+        btwBedrag = inclBtw - exclBtw;
+      } else {
+        exclBtw = regel.uren * TARIEF;
+        btwBedrag = exclBtw * BTW;
+        inclBtw = exclBtw + btwBedrag;
+      }
+    }
+    return { exclBtw, btwBedrag, inclBtw };
+  }
+
+  function renderUren() {
+    const el = document.getElementById('uren-lijst');
+    const open = uren.filter(u => !u.gefactureerd).sort((a,b) => b.datum.localeCompare(a.datum));
+    if (!open.length) { el.innerHTML = '<div class="empty"><span>⏱</span>Geen openstaande registraties.</div>'; return; }
+    el.innerHTML = open.map(r => {
+      const { inclBtw } = berekenBedragen(r);
+      const label = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
+      return `
+        <div class="list-item">
+          <div class="info">
+            <strong>${r.klantNaam} — ${r.omschrijving || 'Geen omschrijving'}</strong>
+            <small>${r.datum} · ${label} · €${inclBtw.toFixed(2)} incl. BTW</small>
+          </div>
+          <div class="actions">
+            <button class="btn btn-sm btn-danger" onclick="regelVerwijderen(${r.id})">×</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderArchief() {
+    const el = document.getElementById('archief-lijst');
+    const gefactureerd = uren.filter(u => u.gefactureerd).sort((a,b) => b.datum.localeCompare(a.datum));
+    if (!gefactureerd.length) { el.innerHTML = '<div class="empty"><span>📁</span>Nog geen gefactureerde regels.</div>'; return; }
+    el.innerHTML = gefactureerd.map(r => {
+      const { inclBtw } = berekenBedragen(r);
+      const label = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
+      return `
+        <div class="list-item">
+          <div class="info">
+            <strong>${r.klantNaam} — ${r.omschrijving || 'Geen omschrijving'}</strong>
+            <small>${r.datum} · ${label} · €${inclBtw.toFixed(2)} incl. BTW</small>
+          </div>
+          <span class="badge badge-green">Gefactureerd</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ===== FACTUUR =====
+  function initFactuurTab() {
+    document.getElementById('f-nummer').value = 'SEPP-' + String(factuurTeller).padStart(4, '0');
+    const vandaag = new Date().toISOString().split('T')[0];
+    document.getElementById('f-datum').value = vandaag;
+    document.getElementById('factuur-preview').classList.remove('zichtbaar');
+  }
+
+  function filterUrenVoorFactuur() {
+    const klantId = parseInt(document.getElementById('f-klant').value);
+    const wrapper = document.getElementById('f-regels-wrapper');
+    const lijst = document.getElementById('f-regels-lijst');
+    if (!klantId) { wrapper.style.display = 'none'; return; }
+    const open = uren.filter(u => u.klantId === klantId && !u.gefactureerd);
+    if (!open.length) {
+      wrapper.style.display = 'block';
+      lijst.innerHTML = '<small style="color:#888">Geen openstaande registraties voor deze klant.</small>';
+      return;
+    }
+    wrapper.style.display = 'block';
+    lijst.innerHTML = open.map(r => {
+      const { inclBtw } = berekenBedragen(r);
+      const label = r.type === 'uur' ? `${r.uren} uur` : 'Vast';
+      return `
+        <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1.5px solid #d8ecd8;border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:0.85rem;font-weight:400;">
+          <input type="checkbox" value="${r.id}" checked style="width:auto;accent-color:var(--green);" />
+          <span><strong>${r.datum}</strong> — ${r.omschrijving || 'Geen omschrijving'} (${label}, €${inclBtw.toFixed(2)})</span>
+        </label>
+      `;
+    }).join('');
+  }
+
+  function maakFactuur() {
+    const klantId = parseInt(document.getElementById('f-klant').value);
+    if (!klantId) return alert('Kies een klant.');
+    const klant = klanten.find(k => k.id === klantId);
+    const geselecteerd = [...document.querySelectorAll('#f-regels-lijst input[type=checkbox]:checked')].map(cb => parseInt(cb.value));
+    if (!geselecteerd.length) return alert('Selecteer minimaal één registratie.');
+
+    const factuurDatum = document.getElementById('f-datum').value;
+    const termijn = parseInt(document.getElementById('f-termijn').value) || 14;
+    const opmerking = document.getElementById('f-opmerking').value.trim();
+    const nummer = document.getElementById('f-nummer').value;
+
+    const vervalDatum = new Date(factuurDatum);
+    vervalDatum.setDate(vervalDatum.getDate() + termijn);
+    const vervalStr = vervalDatum.toLocaleDateString('nl-NL');
+    const factuurDatumStr = new Date(factuurDatum).toLocaleDateString('nl-NL');
+
+    const regels = uren.filter(u => geselecteerd.includes(u.id));
+    let totaalExcl = 0, totaalBtw = 0, totaalIncl = 0;
+
+    const rijen = regels.map(r => {
+      const { exclBtw, btwBedrag, inclBtw } = berekenBedragen(r);
+      totaalExcl += exclBtw;
+      totaalBtw += btwBedrag;
+      totaalIncl += inclBtw;
+      const qty = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
+      return `
+        <tr>
+          <td>${new Date(r.datum).toLocaleDateString('nl-NL')}</td>
+          <td>${r.omschrijving || '—'}</td>
+          <td>${qty}</td>
+          <td>€${exclBtw.toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const html = `
+      <div class="factuur-doc">
+        <div class="factuur-header">
+          <div>
+            <div class="factuur-logo">SEPP<small>Snel Even Perfect Personeel</small></div>
+          </div>
+          <div class="factuur-meta">
+            <strong>FACTUUR</strong>
+            <p>${nummer}</p>
+            <p>Datum: ${factuurDatumStr}</p>
+            <p>Vervaldatum: ${vervalStr}</p>
+          </div>
+        </div>
+
+        <div class="factuur-partijen">
+          <div class="factuur-partij">
+            <h4>Van</h4>
+            <p><strong>Sepp Feijten</strong><br>
+            Diepeweg 27<br>1211 AE Hilversum<br><br>
+            BTW: NL005106845B75<br>
+            IBAN: NL81INGB0113162642</p>
+          </div>
+          <div class="factuur-partij">
+            <h4>Aan</h4>
+            <p><strong>${klant.naam}</strong><br>
+            ${klant.contact ? klant.contact + '<br>' : ''}
+            ${klant.adres ? klant.adres + '<br>' : ''}
+            ${[klant.postcode, klant.plaats].filter(Boolean).join(' ')}
+            ${klant.btw ? '<br>BTW: ' + klant.btw : ''}</p>
+          </div>
+        </div>
+
+        <table class="factuur-tabel">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Omschrijving</th>
+              <th>Hoeveelheid</th>
+              <th>Bedrag excl. BTW</th>
+            </tr>
+          </thead>
+          <tbody>${rijen}</tbody>
+        </table>
+
+        <div class="factuur-totaal">
+          <div class="factuur-totaal-rij"><span>Subtotaal excl. BTW</span><span>€${totaalExcl.toFixed(2)}</span></div>
+          <div class="factuur-totaal-rij"><span>BTW 21%</span><span>€${totaalBtw.toFixed(2)}</span></div>
+          <div class="factuur-totaal-rij eindtotaal"><span>Totaal incl. BTW</span><span>€${totaalIncl.toFixed(2)}</span></div>
+        </div>
+
+        <div class="factuur-betaling">
+          <strong>Betaling:</strong> Graag het bedrag van <strong>€${totaalIncl.toFixed(2)}</strong> vóór <strong>${vervalStr}</strong> overmaken naar:<br>
+          IBAN <strong>NL81INGB0113162642</strong> t.n.v. Sepp Feijten<br>
+          Onder vermelding van <strong>${nummer}</strong>
+          ${opmerking ? '<br><br>' + opmerking : ''}
+        </div>
+
+        <div class="factuur-footer">
+          Sepp Feijten · Diepeweg 27 · 1211 AE Hilversum · BTW NL005106845B75
+        </div>
+      </div>
+    `;
+
+    document.getElementById('factuur-inhoud').innerHTML = html;
+    document.getElementById('print-inhoud').innerHTML = html;
+    document.getElementById('factuur-preview').classList.add('zichtbaar');
+    document.getElementById('factuur-preview').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function printFactuur() {
+    const klantId = parseInt(document.getElementById('f-klant').value);
+    const geselecteerd = [...document.querySelectorAll('#f-regels-lijst input[type=checkbox]:checked')].map(cb => parseInt(cb.value));
+    const nummer = document.getElementById('f-nummer').value;
+    const datum = document.getElementById('f-datum').value;
+    const klant = klanten.find(k => k.id === klantId);
+    const regels = uren.filter(u => geselecteerd.includes(u.id));
+
+    let totaalIncl = 0;
+    const regelsText = regels.map(r => {
+      const { inclBtw } = berekenBedragen(r);
+      totaalIncl += inclBtw;
+      const qty = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
+      return `${r.datum} — ${r.omschrijving || '—'} (${qty}): €${inclBtw.toFixed(2)}`;
+    }).join('\n');
+
+    // Stuur mail naar Michelle
+    emailjs.send('service_3ckzkqb', 'template_nikgx99', {
+      nummer: nummer,
+      klant: klant.naam,
+      datum: new Date(datum).toLocaleDateString('nl-NL'),
+      totaal: totaalIncl.toFixed(2),
+      regels: regelsText,
+    }).catch(err => console.error('EmailJS fout:', err));
+
+    window.print();
+
+    uren = uren.map(u => geselecteerd.includes(u.id) ? {...u, gefactureerd: true} : u);
+    sla('sepp_uren', uren);
+    factuurTeller++;
+    localStorage.setItem('sepp_factuur_teller', factuurTeller);
+    document.getElementById('f-nummer').value = 'SEPP-' + String(factuurTeller).padStart(4, '0');
+  }
+
+  function sluitFactuur() {
+    document.getElementById('factuur-preview').classList.remove('zichtbaar');
+  }
+
+  // ===== INITIALISATIE =====
+  document.getElementById('u-datum').value = new Date().toISOString().split('T')[0];
+  renderKlanten();
+  renderUren();
+  initFactuurTab();
+</script>
+</body>
+</html>
