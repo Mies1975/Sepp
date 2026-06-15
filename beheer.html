@@ -1000,8 +1000,8 @@ async function commitNaarGitHub(meldingId) {
   if (!token) { alert('Voer eerst een GitHub token in.'); return; }
   toonOverlay(true);
   try {
-    const getResp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}`, {
-      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    const getResp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&t=${Date.now()}`, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
     });
     let sha = null;
     if (getResp.ok) sha = (await getResp.json()).sha;
