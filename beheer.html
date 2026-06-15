@@ -1106,22 +1106,6 @@ function setVal(id, val) {
   el.value = val;
 }
 
-// iOS fix: voorkom dat tikken alles selecteert en vervangt
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('#beheer-screen input[type=text], #beheer-screen textarea').forEach(function(el) {
-    el.addEventListener('focus', function() {
-      var self = this;
-      setTimeout(function() {
-        try {
-          // Alleen ingrijpen als iOS alles heeft geselecteerd
-          if (self.selectionStart === 0 && self.selectionEnd === self.value.length && self.value.length > 0) {
-            self.setSelectionRange(0, 0);
-          }
-        } catch(e) {}
-      }, 50);
-    });
-  });
-});
 
 /* ---- Opslaan: websiteteksten ---- */
 function slaOpTeksten() {
