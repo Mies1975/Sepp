@@ -464,8 +464,17 @@
         </div>
       </div>
       <div id="uur-veld">
-        <label>Aantal uren</label>
-        <input type="number" id="u-uren" placeholder="Bijv. 3.5" step="0.25" min="0" />
+        <div class="form-row">
+          <div>
+            <label>Begintijd</label>
+            <input type="time" id="u-begin" onchange="berekenUrenVanTijden()" />
+          </div>
+          <div>
+            <label>Eindtijd</label>
+            <input type="time" id="u-eind" onchange="berekenUrenVanTijden()" />
+          </div>
+        </div>
+        <div id="uur-berekend" style="margin-top:6px; font-size:0.85rem; color:var(--green-dark); font-weight:600; min-height:20px;"></div>
       </div>
       <div id="vast-veld" style="display:none">
         <label>Bedrag (€)</label>
@@ -644,6 +653,20 @@
   }
 
   // ===== UREN =====
+  function berekenUrenVanTijden() {
+    const begin = document.getElementById('u-begin').value;
+    const eind = document.getElementById('u-eind').value;
+    const el = document.getElementById('uur-berekend');
+    if (!begin || !eind) { el.textContent = ''; return; }
+    const [bh, bm] = begin.split(':').map(Number);
+    const [eh, em] = eind.split(':').map(Number);
+    const minuten = (eh * 60 + em) - (bh * 60 + bm);
+    if (minuten <= 0) { el.textContent = 'Eindtijd moet na begintijd liggen.'; el.style.color = '#b91c1c'; return; }
+    const uren = minuten / 60;
+    el.style.color = 'var(--green-dark)';
+    el.textContent = `= ${uren % 1 === 0 ? uren : uren.toFixed(2)} uur`;
+  }
+
   function setType(type) {
     regelsType = type;
     document.getElementById('type-uur').classList.toggle('active', type === 'uur');
@@ -667,8 +690,14 @@
 
     let uren_aantal = null, vast_bedrag = null;
     if (regelsType === 'uur') {
-      uren_aantal = parseFloat(document.getElementById('u-uren').value);
-      if (!uren_aantal || uren_aantal <= 0) return alert('Vul het aantal uren in.');
+      const begin = document.getElementById('u-begin').value;
+      const eind = document.getElementById('u-eind').value;
+      if (!begin || !eind) return alert('Vul een begintijd en eindtijd in.');
+      const [bh, bm] = begin.split(':').map(Number);
+      const [eh, em] = eind.split(':').map(Number);
+      const minuten = (eh * 60 + em) - (bh * 60 + bm);
+      if (minuten <= 0) return alert('Eindtijd moet na begintijd liggen.');
+      uren_aantal = minuten / 60;
     } else {
       vast_bedrag = parseFloat(document.getElementById('u-vast').value);
       if (!vast_bedrag || vast_bedrag <= 0) return alert('Vul een bedrag in.');
@@ -687,7 +716,9 @@
     };
     uren.push(regel);
     sla('sepp_uren', uren);
-    document.getElementById('u-uren').value = '';
+    document.getElementById('u-begin').value = '';
+    document.getElementById('u-eind').value = '';
+    document.getElementById('uur-berekend').textContent = '';
     document.getElementById('u-vast').value = '';
     document.getElementById('u-omschrijving').value = '';
     renderUren();
