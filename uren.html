@@ -589,12 +589,6 @@
       document.getElementById('login-fout').style.display = 'block';
     }
   }
-  if (sessionStorage.getItem('sepp_ingelogd') === '1') {
-    document.getElementById('login-scherm').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-  }
-
   // ===== DATA (Supabase) =====
   const SUPABASE_URL = 'https://uyrsctcqxxntaoetlqhv.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_xiBg_SGAEZy7TKYVTjctKA_xBou6JlO';
@@ -607,6 +601,12 @@
   let regelsType = 'uur';
   let btwType = 'incl';
   const TARIEF = 20;
+
+  if (sessionStorage.getItem('sepp_ingelogd') === '1') {
+    document.getElementById('login-scherm').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  }
   const BTW = 0.21;
 
   // ===== TABS =====
@@ -615,7 +615,8 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + naam).classList.add('active');
     event.target.classList.add('active');
-    if (naam === 'uren') vulKlantenSelect('u-klant');
+    if (naam === 'klanten') renderKlanten();
+    if (naam === 'uren') { vulKlantenSelect('u-klant'); renderUren(); }
     if (naam === 'factuur') { vulKlantenSelect('f-klant'); initFactuurTab(); filterUrenVoorFactuur(); }
     if (naam === 'archief') renderArchief();
   }
