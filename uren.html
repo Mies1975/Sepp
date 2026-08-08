@@ -551,6 +551,19 @@
 <!-- ===== ARCHIEF ===== -->
 <div class="page" id="tab-archief">
   <div class="card">
+    <h2>Verzonden facturen</h2>
+    <div id="archief-facturen-lijst"></div>
+  </div>
+
+  <div id="archief-factuur-preview" style="display:none">
+    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn btn-orange" onclick="printArchiefFactuur()">🖨 Printen</button>
+      <button class="btn btn-ghost" onclick="sluitArchiefFactuur()">× Sluiten</button>
+    </div>
+    <div id="archief-factuur-inhoud" class="factuur-doc"></div>
+  </div>
+
+  <div class="card">
     <h2>Gefactureerde regels</h2>
     <div id="archief-lijst"></div>
   </div>
@@ -641,6 +654,7 @@
 
   // ===== KLANTEN =====
   async function klantOpslaan() {
+   try {
     const naam = document.getElementById('k-naam').value.trim();
     if (!naam) return alert('Vul een naam in.');
     const { error } = await db.from('klanten').insert({
@@ -656,14 +670,21 @@
     ['k-naam','k-contact','k-email','k-adres','k-postcode','k-plaats','k-btw'].forEach(id => document.getElementById(id).value = '');
     await laadData();
     renderKlanten();
+   } catch (e) {
+    alert('Onverwachte fout bij opslaan klant: ' + e.message);
+   }
   }
 
   async function klantVerwijderen(id) {
+   try {
     if (!confirm('Klant verwijderen?')) return;
     const { error } = await db.from('klanten').delete().eq('id', id);
     if (error) return alert('Verwijderen mislukt: ' + error.message);
     await laadData();
     renderKlanten();
+   } catch (e) {
+    alert('Onverwachte fout bij verwijderen klant: ' + e.message);
+   }
   }
 
   function renderKlanten() {
@@ -719,6 +740,7 @@
   }
 
   async function urenOpslaan() {
+   try {
     const klantId = parseInt(document.getElementById('u-klant').value);
     if (!klantId) return alert('Kies een klant.');
     const datum = document.getElementById('u-datum').value;
@@ -741,6 +763,7 @@
     }
 
     const klant = klanten.find(k => k.id === klantId);
+    if (!klant) return alert('Kon deze klant niet vinden. Ververs de pagina en probeer opnieuw.');
     const { error } = await db.from('uren').insert({
       klant_id: klantId, klant_naam: klant.naam, datum, omschrijving,
       type: regelsType, uren: waarde, btw_type: btwType, gefactureerd: false,
@@ -753,14 +776,21 @@
     document.getElementById('u-omschrijving').value = '';
     await laadData();
     renderUren();
+   } catch (e) {
+    alert('Onverwachte fout bij opslaan registratie: ' + e.message);
+   }
   }
 
   async function regelVerwijderen(id) {
+   try {
     if (!confirm('Registratie verwijderen?')) return;
     const { error } = await db.from('uren').delete().eq('id', id);
     if (error) return alert('Verwijderen mislukt: ' + error.message);
     await laadData();
     renderUren();
+   } catch (e) {
+    alert('Onverwachte fout bij verwijderen registratie: ' + e.message);
+   }
   }
 
   function berekenBedragen(regel) {
@@ -810,23 +840,58 @@
     }).join('');
   }
 
-  function renderArchief() {
+  async function renderArchief() {
     const el = document.getElementById('archief-lijst');
     const gefactureerd = uren.filter(u => u.gefactureerd).sort((a,b) => b.datum.localeCompare(a.datum));
-    if (!gefactureerd.length) { el.innerHTML = '<div class="empty"><span>📁</span>Nog geen gefactureerde regels.</div>'; return; }
-    el.innerHTML = gefactureerd.map(r => {
-      const { inclBtw } = berekenBedragen(r);
-      const label = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
-      return `
-        <div class="list-item">
-          <div class="info">
-            <strong>${r.klantNaam} — ${r.omschrijving || 'Geen omschrijving'}</strong>
-            <small>${r.datum} · ${label} · €${inclBtw.toFixed(2)} incl. BTW</small>
+    if (!gefactureerd.length) { el.innerHTML = '<div class="empty"><span>📁</span>Nog geen gefactureerde regels.</div>'; }
+    else {
+      el.innerHTML = gefactureerd.map(r => {
+        const { inclBtw } = berekenBedragen(r);
+        const label = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
+        return `
+          <div class="list-item">
+            <div class="info">
+              <strong>${r.klantNaam} — ${r.omschrijving || 'Geen omschrijving'}</strong>
+              <small>${r.datum} · ${label} · €${inclBtw.toFixed(2)} incl. BTW</small>
+            </div>
+            <span class="badge badge-green">Gefactureerd</span>
           </div>
-          <span class="badge badge-green">Gefactureerd</span>
+        `;
+      }).join('');
+    }
+
+    const facturenEl = document.getElementById('archief-facturen-lijst');
+    const { data: facturenData, error } = await db.from('facturen').select('*').order('nummer', { ascending: false });
+    if (error) { facturenEl.innerHTML = '<div class="empty">Kon facturen niet laden: ' + error.message + '</div>'; return; }
+    if (!facturenData.length) { facturenEl.innerHTML = '<div class="empty"><span>🧾</span>Nog geen facturen opgeslagen.</div>'; return; }
+    facturenEl.innerHTML = facturenData.map(f => `
+      <div class="list-item">
+        <div class="info">
+          <strong>${f.nummer} — ${f.klant_naam}</strong>
+          <small>${new Date(f.datum).toLocaleDateString('nl-NL')} · €${Number(f.totaal_incl).toFixed(2)} incl. BTW</small>
         </div>
-      `;
-    }).join('');
+        <div class="actions">
+          <button class="btn btn-sm btn-ghost" onclick="toonFactuurArchief('${f.nummer}')">Bekijken</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function toonFactuurArchief(nummer) {
+    const { data, error } = await db.from('facturen').select('html').eq('nummer', nummer).single();
+    if (error || !data) return alert('Kon factuur niet laden: ' + (error ? error.message : 'niet gevonden'));
+    document.getElementById('archief-factuur-inhoud').innerHTML = data.html;
+    document.getElementById('archief-factuur-preview').style.display = 'block';
+    document.getElementById('archief-factuur-preview').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function sluitArchiefFactuur() {
+    document.getElementById('archief-factuur-preview').style.display = 'none';
+  }
+
+  function printArchiefFactuur() {
+    document.getElementById('print-inhoud').innerHTML = document.getElementById('archief-factuur-inhoud').innerHTML;
+    window.print();
   }
 
   // ===== FACTUUR =====
@@ -967,6 +1032,7 @@
   }
 
   async function printFactuur() {
+   try {
     const klantId = parseInt(document.getElementById('f-klant').value);
     const geselecteerd = [...document.querySelectorAll('#f-regels-lijst input[type=checkbox]:checked')].map(cb => parseInt(cb.value));
     const nummer = document.getElementById('f-nummer').value;
@@ -993,6 +1059,12 @@
 
     window.print();
 
+    const factuurHtml = document.getElementById('factuur-inhoud').innerHTML;
+    const { error: factuurError } = await db.from('facturen').insert({
+      nummer, klant_id: klantId, klant_naam: klant.naam, datum, totaal_incl: totaalIncl, html: factuurHtml,
+    });
+    if (factuurError) alert('Let op: kopie van factuur opslaan is mislukt: ' + factuurError.message);
+
     const { error: urenError } = await db.from('uren')
       .update({ gefactureerd: true, factuur_nummer: nummer })
       .in('id', geselecteerd);
@@ -1007,6 +1079,9 @@
     await laadData();
     renderUren();
     document.getElementById('f-nummer').value = 'SEPP-' + String(factuurTeller).padStart(4, '0');
+   } catch (e) {
+    alert('Onverwachte fout bij opslaan van de factuur: ' + e.message);
+   }
   }
 
   function sluitFactuur() {
