@@ -616,7 +616,7 @@
     document.getElementById('tab-' + naam).classList.add('active');
     event.target.classList.add('active');
     if (naam === 'uren') vulKlantenSelect('u-klant');
-    if (naam === 'factuur') { vulKlantenSelect('f-klant'); initFactuurTab(); }
+    if (naam === 'factuur') { vulKlantenSelect('f-klant'); initFactuurTab(); filterUrenVoorFactuur(); }
     if (naam === 'archief') renderArchief();
   }
 
@@ -776,6 +776,7 @@
     document.getElementById('u-omschrijving').value = '';
     await laadData();
     renderUren();
+    if (document.getElementById('f-klant').value) filterUrenVoorFactuur();
    } catch (e) {
     alert('Onverwachte fout bij opslaan registratie: ' + e.message);
    }
@@ -788,6 +789,7 @@
     if (error) return alert('Verwijderen mislukt: ' + error.message);
     await laadData();
     renderUren();
+    if (document.getElementById('f-klant').value) filterUrenVoorFactuur();
    } catch (e) {
     alert('Onverwachte fout bij verwijderen registratie: ' + e.message);
    }
