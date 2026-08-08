@@ -563,10 +563,6 @@
     <div id="archief-factuur-inhoud" class="factuur-doc"></div>
   </div>
 
-  <div class="card">
-    <h2>Gefactureerde regels</h2>
-    <div id="archief-lijst"></div>
-  </div>
 </div>
 
 </div><!-- einde #app -->
@@ -844,25 +840,6 @@
   }
 
   async function renderArchief() {
-    const el = document.getElementById('archief-lijst');
-    const gefactureerd = uren.filter(u => u.gefactureerd).sort((a,b) => b.datum.localeCompare(a.datum));
-    if (!gefactureerd.length) { el.innerHTML = '<div class="empty"><span>📁</span>Nog geen gefactureerde regels.</div>'; }
-    else {
-      el.innerHTML = gefactureerd.map(r => {
-        const { inclBtw } = berekenBedragen(r);
-        const label = r.type === 'uur' ? `${r.uren} uur` : 'Vaste prijs';
-        return `
-          <div class="list-item">
-            <div class="info">
-              <strong>${r.klantNaam} — ${r.omschrijving || 'Geen omschrijving'}</strong>
-              <small>${r.datum} · ${label} · €${inclBtw.toFixed(2)} incl. BTW</small>
-            </div>
-            <span class="badge badge-green">Gefactureerd</span>
-          </div>
-        `;
-      }).join('');
-    }
-
     const facturenEl = document.getElementById('archief-facturen-lijst');
     const { data: facturenData, error } = await db.from('facturen').select('*').order('nummer', { ascending: false });
     if (error) { facturenEl.innerHTML = '<div class="empty">Kon facturen niet laden: ' + error.message + '</div>'; return; }
