@@ -6,6 +6,7 @@
   <title>SEPP — Facturen & Uren</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init('hQMiMuNu1yK1YsTdP');</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ===== LOGIN ===== */
     #login-scherm {
@@ -570,6 +571,7 @@
       sessionStorage.setItem('sepp_ingelogd', '1');
       document.getElementById('login-scherm').style.display = 'none';
       document.getElementById('app').style.display = 'block';
+      initApp();
     } else {
       document.getElementById('login-fout').style.display = 'block';
     }
@@ -577,15 +579,18 @@
   if (sessionStorage.getItem('sepp_ingelogd') === '1') {
     document.getElementById('login-scherm').style.display = 'none';
     document.getElementById('app').style.display = 'block';
+    initApp();
   }
 
-  // ===== DATA =====
-  function laad(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
-  function sla(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  // ===== DATA (Supabase) =====
+  const SUPABASE_URL = 'https://uyrsctcqxxntaoetlqhv.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_xiBg_SGAEZy7TKYVTjctKA_xBou6JlO';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let klanten = laad('sepp_klanten');
-  let uren = laad('sepp_uren');
-  let factuurTeller = parseInt(localStorage.getItem('sepp_factuur_teller') || '1');
+  let klanten = [];
+  let uren = [];
+  let factuurTeller = 1;
   let regelsType = 'uur';
   let btwType = 'incl';
   const TARIEF = 20;
@@ -602,30 +607,62 @@
     if (naam === 'archief') renderArchief();
   }
 
+  // ===== DATA LADEN =====
+  async function laadData() {
+    const { data: klantenData, error: klantenErr } = await db.from('klanten').select('*').order('id');
+    if (klantenErr) { alert('Fout bij laden klanten: ' + klantenErr.message); return; }
+    klanten = klantenData.map(k => ({
+      id: k.id, naam: k.naam, contact: k.contact || '', email: k.email || '',
+      adres: k.adres || '', postcode: k.postcode || '', plaats: k.plaats || '', btw: k.btw_nummer || ''
+    }));
+
+    const { data: urenData, error: urenErr } = await db.from('uren').select('*').order('id');
+    if (urenErr) { alert('Fout bij laden uren: ' + urenErr.message); return; }
+    uren = urenData.map(u => ({
+      id: u.id, klantId: u.klant_id, klantNaam: u.klant_naam, datum: u.datum,
+      omschrijving: u.omschrijving || '', type: u.type,
+      uren: u.type === 'uur' ? Number(u.uren) : null,
+      vastBedrag: u.type === 'vast' ? Number(u.uren) : null,
+      btwType: u.btw_type || 'incl',
+      gefactureerd: u.gefactureerd,
+    }));
+
+    const { data: tellerData, error: tellerErr } = await db.from('factuur_teller').select('volgende_nummer').eq('id', 1).single();
+    if (tellerErr) { alert('Fout bij laden factuurnummer: ' + tellerErr.message); return; }
+    factuurTeller = tellerData.volgende_nummer;
+  }
+
+  async function initApp() {
+    await laadData();
+    renderKlanten();
+    renderUren();
+    initFactuurTab();
+  }
+
   // ===== KLANTEN =====
-  function klantOpslaan() {
+  async function klantOpslaan() {
     const naam = document.getElementById('k-naam').value.trim();
     if (!naam) return alert('Vul een naam in.');
-    const klant = {
-      id: Date.now(),
+    const { error } = await db.from('klanten').insert({
       naam,
       contact: document.getElementById('k-contact').value.trim(),
       email: document.getElementById('k-email').value.trim(),
       adres: document.getElementById('k-adres').value.trim(),
       postcode: document.getElementById('k-postcode').value.trim(),
       plaats: document.getElementById('k-plaats').value.trim(),
-      btw: document.getElementById('k-btw').value.trim(),
-    };
-    klanten.push(klant);
-    sla('sepp_klanten', klanten);
+      btw_nummer: document.getElementById('k-btw').value.trim(),
+    });
+    if (error) return alert('Opslaan mislukt: ' + error.message);
     ['k-naam','k-contact','k-email','k-adres','k-postcode','k-plaats','k-btw'].forEach(id => document.getElementById(id).value = '');
+    await laadData();
     renderKlanten();
   }
 
-  function klantVerwijderen(id) {
+  async function klantVerwijderen(id) {
     if (!confirm('Klant verwijderen?')) return;
-    klanten = klanten.filter(k => k.id !== id);
-    sla('sepp_klanten', klanten);
+    const { error } = await db.from('klanten').delete().eq('id', id);
+    if (error) return alert('Verwijderen mislukt: ' + error.message);
+    await laadData();
     renderKlanten();
   }
 
@@ -681,14 +718,14 @@
     document.getElementById('btw-excl').classList.toggle('active', type === 'excl');
   }
 
-  function urenOpslaan() {
+  async function urenOpslaan() {
     const klantId = parseInt(document.getElementById('u-klant').value);
     if (!klantId) return alert('Kies een klant.');
     const datum = document.getElementById('u-datum').value;
     if (!datum) return alert('Kies een datum.');
     const omschrijving = document.getElementById('u-omschrijving').value.trim();
 
-    let uren_aantal = null, vast_bedrag = null;
+    let waarde;
     if (regelsType === 'uur') {
       const begin = document.getElementById('u-begin').value;
       const eind = document.getElementById('u-eind').value;
@@ -697,37 +734,32 @@
       const [eh, em] = eind.split(':').map(Number);
       const minuten = (eh * 60 + em) - (bh * 60 + bm);
       if (minuten <= 0) return alert('Eindtijd moet na begintijd liggen.');
-      uren_aantal = minuten / 60;
+      waarde = minuten / 60;
     } else {
-      vast_bedrag = parseFloat(document.getElementById('u-vast').value);
-      if (!vast_bedrag || vast_bedrag <= 0) return alert('Vul een bedrag in.');
+      waarde = parseFloat(document.getElementById('u-vast').value);
+      if (!waarde || waarde <= 0) return alert('Vul een bedrag in.');
     }
 
     const klant = klanten.find(k => k.id === klantId);
-    const regel = {
-      id: Date.now(),
-      klantId, klantNaam: klant.naam,
-      datum, omschrijving,
-      type: regelsType,
-      uren: uren_aantal,
-      vastBedrag: vast_bedrag,
-      btwType,
-      gefactureerd: false,
-    };
-    uren.push(regel);
-    sla('sepp_uren', uren);
+    const { error } = await db.from('uren').insert({
+      klant_id: klantId, klant_naam: klant.naam, datum, omschrijving,
+      type: regelsType, uren: waarde, btw_type: btwType, gefactureerd: false,
+    });
+    if (error) return alert('Opslaan mislukt: ' + error.message);
     document.getElementById('u-begin').value = '';
     document.getElementById('u-eind').value = '';
     document.getElementById('uur-berekend').textContent = '';
     document.getElementById('u-vast').value = '';
     document.getElementById('u-omschrijving').value = '';
+    await laadData();
     renderUren();
   }
 
-  function regelVerwijderen(id) {
+  async function regelVerwijderen(id) {
     if (!confirm('Registratie verwijderen?')) return;
-    uren = uren.filter(u => u.id !== id);
-    sla('sepp_uren', uren);
+    const { error } = await db.from('uren').delete().eq('id', id);
+    if (error) return alert('Verwijderen mislukt: ' + error.message);
+    await laadData();
     renderUren();
   }
 
@@ -934,7 +966,7 @@
     document.getElementById('factuur-preview').scrollIntoView({ behavior: 'smooth' });
   }
 
-  function printFactuur() {
+  async function printFactuur() {
     const klantId = parseInt(document.getElementById('f-klant').value);
     const geselecteerd = [...document.querySelectorAll('#f-regels-lijst input[type=checkbox]:checked')].map(cb => parseInt(cb.value));
     const nummer = document.getElementById('f-nummer').value;
@@ -961,10 +993,19 @@
 
     window.print();
 
-    uren = uren.map(u => geselecteerd.includes(u.id) ? {...u, gefactureerd: true} : u);
-    sla('sepp_uren', uren);
-    factuurTeller++;
-    localStorage.setItem('sepp_factuur_teller', factuurTeller);
+    const { error: urenError } = await db.from('uren')
+      .update({ gefactureerd: true, factuur_nummer: nummer })
+      .in('id', geselecteerd);
+    if (urenError) alert('Let op: bijwerken van uren is mislukt: ' + urenError.message);
+
+    const volgende = factuurTeller + 1;
+    const { error: tellerError } = await db.from('factuur_teller')
+      .update({ volgende_nummer: volgende })
+      .eq('id', 1);
+    if (tellerError) alert('Let op: factuurnummer bijwerken is mislukt: ' + tellerError.message);
+
+    await laadData();
+    renderUren();
     document.getElementById('f-nummer').value = 'SEPP-' + String(factuurTeller).padStart(4, '0');
   }
 
@@ -974,9 +1015,6 @@
 
   // ===== INITIALISATIE =====
   document.getElementById('u-datum').value = new Date().toISOString().split('T')[0];
-  renderKlanten();
-  renderUren();
-  initFactuurTab();
 </script>
 </body>
 </html>
